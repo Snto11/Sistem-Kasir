@@ -81,6 +81,13 @@
             font-weight: 500;
         }
 
+        /* Style Teks Informasi Update Halaman */
+        .text-update-info {
+            font-size: 0.8rem;
+            color: #adb5bd;
+            margin-bottom: 2px;
+        }
+
         /* ==========================================================================
            REVISI FITUR: STYLE KHUSUS INPUTAN SAAT TERKUNCI (READ-ONLY)
            ========================================================================== */
@@ -368,10 +375,12 @@
 
         </div>
 
-        <!-- Penambahan Footer Copyright Web Cashier -->
         <div class="row mt-5">
             <div class="col-12">
-                <p class="footer-copyright">© 2026 Web Cashier. All Rights Reserved.</p>
+                <div class="footer-copyright">
+                    <p class="text-update-info">Terakhir Diperbarui: 1 Juli 2026</p>
+                    <p class="m-0">© 2026 Web Cashier. All Rights Reserved.</p>
+                </div>
             </div>
         </div>
 
@@ -1092,12 +1101,10 @@
             for (let nama in daftarProduk) {
                 barisTabel += `
                     <tr class="produk-row" data-nama="${nama.toLowerCase()}">
-                        <!-- REVISI LEBAR: Menambahkan style white-space nowrap agar angka tidak patah baris -->
                         <td class="text-muted fw-semibold small" style="white-space: nowrap;">${nomorUrutMaster++}</td>
                         <td class="text-start fw-bold small nama-produk-kolom">${nama}</td>
                         <td class="text-end small">Rp ${formatRupiah(daftarProduk[nama].harga)}</td>
                         <td class="text-center small fw-semibold text-primary">${daftarProduk[nama].stok} pcs</td>
-                        <!-- REVISI TOMBOL AKSI: Menggunakan flex layout agar tombol edit dan hapus tetap kokoh bersebelahan di HP -->
                         <td>
                             <div class="d-flex flex-row justify-content-center align-items-center">
                                 <button class="btn btn-warning btn-sm p-1 py-0 shadow-sm me-1" title="Edit Produk" onclick="isiFormMasterProduk('${nama}', ${daftarProduk[nama].harga}, ${daftarProduk[nama].stok})">✏️</button>
@@ -1116,7 +1123,6 @@
                             <label class="fw-bold text-secondary mb-1" id="swalLabelInput">➕ Tambah / Update Produk:</label>
                             <input type="text" id="swalNamaBarang" class="form-control form-control-sm mb-2" placeholder="Nama Barang (Misal: Es Kulkul)">
                             
-                            <!-- Penambahan input-group bertuliskan Rp pada inputan Harga Satuan -->
                             <div class="input-group input-group-sm mb-2">
                                 <span class="input-group-text">Rp</span>
                                 <input type="text" id="swalHargaBarangTampilan" inputmode="numeric" class="form-control" placeholder="Harga Satuan (Misal: 5.000)">
@@ -1124,7 +1130,6 @@
                             
                             <input type="number" id="swalStokBarang" class="form-control form-control-sm mb-2" placeholder="Jumlah Sisa Stok Awal (Misal: 100)" min="0">
                             
-                            <!-- Wadah Tombol Aksi Dinamis Bertombol Batal -->
                             <div id="swalWadahTombol">
                                 <button class="btn btn-primary btn-sm w-100 fw-bold" id="swalBtnSimpan" onclick="simpanMasterProduk()">💾 Simpan ke Sistem</button>
                             </div>
@@ -1138,12 +1143,10 @@
                             <table class="table table-sm table-hover align-middle border-0 text-center m-0" id="swalTabelMaster">
                                 <thead class="table-secondary small sticky-top" style="top: 0; z-index: 2;">
                                     <tr>
-                                        <!-- REVISI LEBAR KOLOM NO: menggunakan min-width dan white-space agar tulisan No tidak bertumpuk di HP -->
                                         <th style="min-width: 45px; white-space: nowrap;">No</th>
                                         <th>Nama Barang</th>
                                         <th>Harga</th>
                                         <th>Stok</th>
-                                        <!-- REVISI KOLOM AKSI: Menambahkan style white-space nowrap agar kolom tidak memaksa tombol patah baris -->
                                         <th style="white-space: nowrap;">Aksi</th>
                                     </tr>
                                 </thead>
