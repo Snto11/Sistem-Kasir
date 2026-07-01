@@ -73,6 +73,14 @@
             font-weight: bold;
         }
 
+        /* Footer Copyright Style */
+        .footer-copyright {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
         /* ==========================================================================
            REVISI FITUR: STYLE KHUSUS INPUTAN SAAT TERKUNCI (READ-ONLY)
            ========================================================================== */
@@ -93,7 +101,8 @@
             #formPenjualan,
             #formTitle,
             .mb-select-bayar,
-            .btn-block-privasi {
+            .btn-block-privasi,
+            .footer-copyright {
                 display: none !important;
             }
 
@@ -358,6 +367,14 @@
             </div>
 
         </div>
+
+        <!-- Penambahan Footer Copyright Web Cashier -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <p class="footer-copyright">© 2026 Web Cashier. All Rights Reserved.</p>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -440,10 +457,11 @@
             hitungKalkulatorSeketika();
         });
 
+        /* REVISI FITUR: inputUangFisikTampilan dikondisikan agar mengembalikan placeholder saat kosong */
         inputUangFisikTampilan.addEventListener('input', function (e) {
             let nilaiBersih = e.target.value.replace(/\D/g, "");
             uangFisikAsli = Number(nilaiBersih) || 0;
-            e.target.value = formatRupiah(nilaiBersih);
+            e.target.value = nilaiBersih === "" ? "" : formatRupiah(nilaiBersih);
             hitungSelisihLaci();
         });
 
@@ -1112,8 +1130,8 @@
                             <input type="text" id="swalCariProduk" class="form-control form-control-sm border-secondary border-opacity-50" placeholder="🔍 Cari nama produk di tabel...">
                         </div>
 
-                        <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
-                            <table class="table table-sm table-hover align-middle border text-center m-0" id="swalTabelMaster">
+                        <div class="table-responsive border rounded" style="max-height: 200px; overflow-y: auto;">
+                            <table class="table table-sm table-hover align-middle border-0 text-center m-0" id="swalTabelMaster">
                                 <thead class="table-secondary small sticky-top" style="top: 0; z-index: 2;">
                                     <tr>
                                         <th style="width: 8%;">No</th>
