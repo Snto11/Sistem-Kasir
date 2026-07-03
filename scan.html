@@ -33,8 +33,17 @@
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
         }
-        h1 {
+        .container-tabel {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        h1, h2 {
             font-size: 22px;
             margin-bottom: 5px;
             color: #1e3a8a;
@@ -60,6 +69,12 @@
             border: none !important;
             font-size: 14px !important;
         }
+        .sticky-thead {
+            position: sticky;
+            top: 0;
+            background-color: #e9ecef;
+            z-index: 1;
+        }
     </style>
 </head>
 <body>
@@ -69,15 +84,16 @@
     <script>
         let currentUser = null;
         let masterProdukLokal = {};
+        let namaProdukLamaYangSedangDiedit = "";
 
         auth.onAuthStateChanged((user) => {
             if (!user) {
                 window.location.href = 'login.html';
             } else {
                 currentUser = user;
-                // Ambil data master produk kasir untuk sinkronisasi penambahan data
                 database.ref(`kasir_users/${user.uid}/master_produk`).on('value', (snapshot) => {
                     masterProdukLokal = snapshot.val() || {};
+                    muatTabelMasterLokal(); // Muat ulang isi tabel tiap ada perubahan di cloud
                 });
             }
         });
@@ -92,7 +108,7 @@
         <div id="reader" class="mb-4"></div>
 
         <div class="card p-3 bg-light border text-start shadow-sm" style="font-size: 0.9rem;">
-            <label class="fw-bold text-secondary mb-2">➕ Tambah / Update Produk dari Scan:</label>
+            <label class="fw-bold text-secondary mb-2" id="labelInputMaster">➕ Tambah / Update Produk dari Scan:</label>
             
             <div class="mb-2">
                 <label class="form-label small fw-semibold mb-1">Kode Barcode Terpindai</label>
@@ -117,14 +133,43 @@
                 <input type="number" id="scanStokBarang" class="form-control form-control-sm" placeholder="Jumlah sisa stok">
             </div>
 
-            <div class="row g-2">
-                <div class="col-8">
-                    <button class="btn btn-primary btn-sm w-100 fw-bold shadow-sm" onclick="simpanProdukDariScan()">💾 Simpan ke Sistem</button>
-                </div>
-                <div class="col-4">
-                    <a href="index.html" class="btn btn-secondary btn-sm w-100 fw-bold shadow-sm">🔙 Kembali</a>
+            <div id="wadahTombolAksi">
+                <div class="row g-2">
+                    <div class="col-8">
+                        <button class="btn btn-primary btn-sm w-100 fw-bold shadow-sm" onclick="simpanProdukDariScan()">💾 Simpan ke Sistem</button>
+                    </div>
+                    <div class="col-4">
+                        <a href="index.html" class="btn btn-secondary btn-sm w-100 fw-bold shadow-sm">🔙 Kembali</a>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="container-tabel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="m-0">📋 Daftar Produk Terdaftar</h2>
+        </div>
+        <div class="mb-3">
+            <input type="text" id="cariProdukScan" class="form-control form-control-sm" oninput="filterTabelMasterScan()" placeholder="🔍 Cari nama atau barcode...">
+        </div>
+        <div class="table-responsive border rounded" style="max-height: 250px; overflow-y: auto;">
+            <table class="table table-sm table-hover text-center m-0" id="tabelMasterScan" style="font-size: 0.85rem;">
+                <thead class="table-secondary sticky-thead small">
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Barang</th>
+                        <th>Harga</th>
+                        <th>Stok</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" class="text-muted py-2">Memuat daftar produk...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -134,32 +179,23 @@
             return Math.round(angka).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
-        // Event listener format mata uang saat diketik manual
         document.getElementById('scanHargaBarangTampilan').addEventListener('input', function (e) {
             e.target.value = formatRupiah(e.target.value.replace(/\D/g, ""));
         });
 
-        // Handler Sukses Scan Barcode Kamera
         function onScanSuccess(decodedText, decodedResult) {
             document.getElementById('scanBarcodeBarang').value = decodedText;
             
-            // FITUR PINTAR: Jika nomor barcode yang di-scan ternyata sudah terdaftar sebelumnya di sistem kasir,
-            // otomatis isi nama, harga, dan stok lamanya agar kasir tinggal memperbarui datanya saja.
             for (let nama in masterProdukLokal) {
                 if (masterProdukLokal[nama].barcode && masterProdukLokal[nama].barcode === decodedText) {
-                    document.getElementById('scanNamaBarang').value = nama;
-                    document.getElementById('scanHargaBarangTampilan').value = formatRupiah(masterProdukLokal[nama].harga);
-                    document.getElementById('scanStokBarang').value = masterProdukLokal[nama].stok;
+                    isiFormMasterProduk(nama, masterProdukLokal[nama].harga, masterProdukLokal[nama].stok, decodedText);
                     break;
                 }
             }
         }
 
-        function onScanFailure(error) {
-            // Pemindaian berlanjut mencari frame barcode secara real-time
-        }
+        function onScanFailure(error) {}
 
-        // Jalankan Inisialisasi Scanner HTML5-QRCode
         let html5QrcodeScanner = new Html5QrcodeScanner(
             "reader", 
             { 
@@ -168,53 +204,149 @@
                 rememberLastUsedCamera: true,
                 supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
             },
-            /* verbose= */ false
+            false
         );
         html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 
-        // Fungsi Simpan ke Cloud Firebase Realtime Database
+        // FUNGSI UNTUK MERENDER ISI TABEL MASTER
+        function muatTabelMasterLokal() {
+            const tbody = document.querySelector('#tabelMasterScan tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let nomorUrutMaster = 1;
+            let adaData = false;
+
+            for (let nama in masterProdukLokal) {
+                adaData = true;
+                let barcodeTampil = masterProdukLokal[nama].barcode ? `<br><small class="text-muted fw-mono" style="font-size: 0.72rem;">📋 ${masterProdukLokal[nama].barcode}</small>` : '';
+                
+                tbody.innerHTML += `
+                    <tr class="produk-row-scan" data-nama="${nama.toLowerCase()}" data-barcode="${(masterProdukLokal[nama].barcode || '').toLowerCase()}">
+                        <td class="text-muted fw-semibold small">${nomorUrutMaster++}</td>
+                        <td class="text-start small"><span class="fw-bold">${nama}</span>${barcodeTampil}</td>
+                        <td class="text-end small">Rp ${formatRupiah(masterProdukLokal[nama].harga)}</td>
+                        <td class="text-center small fw-semibold text-primary">${masterProdukLokal[nama].stok} pcs</td>
+                        <td>
+                            <div class="d-flex flex-row justify-content-center align-items-center">
+                                <button class="btn btn-warning btn-sm p-1 py-0 shadow-sm me-1" style="font-size: 0.75rem;" onclick="isiFormMasterProduk('${nama}', ${masterProdukLokal[nama].harga}, ${masterProdukLokal[nama].stok}, '${masterProdukLokal[nama].barcode || ''}')">✏️</button>
+                                <button class="btn btn-danger btn-sm p-1 py-0 shadow-sm" style="font-size: 0.75rem;" onclick="hapusMasterProduk('${nama}')">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>`;
+            }
+
+            if (!adaData) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-muted py-2">Belum ada daftar produk.</td></tr>';
+            }
+        }
+
+        // FUNGSI UNTUK MEMBACA DATA JIKA TOMBOL EDIT DI TABEL DIKLIK
+        window.isiFormMasterProduk = function (nama, harga, stok, barcode) {
+            document.getElementById('scanNamaBarang').value = nama;
+            document.getElementById('scanBarcodeBarang').value = barcode;
+            document.getElementById('scanHargaBarangTampilan').value = formatRupiah(harga);
+            document.getElementById('scanStokBarang').value = stok;
+            namaProdukLamaYangSedangDiedit = nama;
+            
+            document.getElementById('labelInputMaster').innerText = "✏️ Edit Produk Terpilih:";
+            document.getElementById('wadahTombolAksi').innerHTML = `
+                <div class="row g-2">
+                    <div class="col-8">
+                        <button class="btn btn-warning btn-sm w-100 fw-bold shadow-sm" onclick="simpanProdukDariScan()">💾 Perbarui Data Produk</button>
+                    </div>
+                    <div class="col-4">
+                        <button class="btn btn-secondary btn-sm w-100 fw-bold shadow-sm" onclick="window.batalEditMasterProduk()">❌ Batal</button>
+                    </div>
+                </div>`;
+        };
+
+        window.batalEditMasterProduk = function () {
+            namaProdukLamaYangSedangDiedit = "";
+            document.getElementById('scanNamaBarang').value = "";
+            document.getElementById('scanBarcodeBarang').value = "";
+            document.getElementById('scanHargaBarangTampilan').value = "";
+            document.getElementById('scanStokBarang').value = "";
+            
+            document.getElementById('labelInputMaster').innerText = "➕ Tambah / Update Produk dari Scan:";
+            document.getElementById('wadahTombolAksi').innerHTML = `
+                <div class="row g-2">
+                    <div class="col-8">
+                        <button class="btn btn-primary btn-sm w-100 fw-bold shadow-sm" onclick="simpanProdukDariScan()">💾 Simpan ke Sistem</button>
+                    </div>
+                    <div class="col-4">
+                        <a href="index.html" class="btn btn-secondary btn-sm w-100 fw-bold shadow-sm">🔙 Kembali</a>
+                    </div>
+                </div>`;
+        };
+
+        // FUNGSI FILTER PENCARIAN DI TABEL
+        function filterTabelMasterScan() {
+            const kataKunci = document.getElementById('cariProdukScan').value.toLowerCase().trim();
+            document.querySelectorAll('#tabelMasterScan tbody .produk-row-scan').forEach(row => {
+                if (row.getAttribute('data-nama').includes(kataKunci) || row.getAttribute('data-barcode').includes(kataKunci)) {
+                    row.style.setProperty('display', '', 'important');
+                } else {
+                    row.style.setProperty('display', 'none', 'important');
+                }
+            });
+        }
+
+        // FUNGSI SIMPAN & UPDATE KE FIREBASE
         function simpanProdukDariScan() {
             const barcode = document.getElementById('scanBarcodeBarang').value.trim();
             const nama = document.getElementById('scanNamaBarang').value.trim();
             const harga = Number(document.getElementById('scanHargaBarangTampilan').value.replace(/\D/g, "")) || 0;
             const stok = Number(document.getElementById('scanStokBarang').value) || 0;
 
-            if (!barcode) {
-                Swal.fire({ title: "Scan Belum Ada", text: "Silakan lakukan pemindaian barcode produk terlebih dahulu!", icon: "warning", customClass: { popup: 'rounded-4' } });
-                return;
-            }
             if (!nama || harga <= 0) {
                 Swal.fire({ title: "Data Belum Lengkap", text: "Nama barang dan harga satuan wajib diisi!", icon: "warning", customClass: { popup: 'rounded-4' } });
                 return;
             }
 
-            // Simpan / update ke database lokal
+            // Jika sedang mode edit nama lama, dan namanya diganti, hapus nama yang lama agar tidak duplikat
+            if (namaProdukLamaYangSedangDiedit !== "" && namaProdukLamaYangSedangDiedit !== nama) {
+                delete masterProdukLokal[namaProdukLamaYangSedangDiedit];
+            }
+
             masterProdukLokal[nama] = { harga: harga, stok: stok, barcode: barcode };
 
-            // Kirim pembaharuan data langsung ke Cloud Firebase kasir user
             if (currentUser) {
                 database.ref(`kasir_users/${currentUser.uid}/master_produk`).set(masterProdukLokal)
                 .then(() => {
-                    Swal.fire({
-                        title: "Berhasil Disimpan! 🎉",
-                        text: `Produk "${nama}" telah terdaftar ke sistem kasir.`,
-                        icon: "success",
-                        timer: 2000,
-                        showConfirmButton: false,
-                        customClass: { popup: 'rounded-4' }
-                    }).then(() => {
-                        // Bersihkan form setelah sukses input agar siap scan barang baru lagi
-                        document.getElementById('scanBarcodeBarang').value = "";
-                        document.getElementById('scanNamaBarang').value = "";
-                        document.getElementById('scanHargaBarangTampilan').value = "";
-                        document.getElementById('scanStokBarang').value = "";
-                    });
+                    Swal.fire({ title: "Berhasil Disimpan! 🎉", text: `Produk "${nama}" telah disinkronkan.`, icon: "success", timer: 1500, showConfirmButton: false, customClass: { popup: 'rounded-4' } });
+                    window.batalEditMasterProduk();
                 })
                 .catch((error) => {
                     Swal.fire({ title: "Gagal Menyimpan", text: error.message, icon: "error" });
                 });
             }
         }
+
+        // FUNGSI HAPUS PRODUK LANGSUNG DARI HALAMAN SCAN
+        window.hapusMasterProduk = function (namaKey) {
+            Swal.fire({
+                title: "Hapus?",
+                text: `Hapus "${namaKey}" dari Cloud?`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                confirmButtonText: "Ya, Hapus!",
+                cancelButtonText: "Batal",
+                customClass: { popup: 'rounded-4' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    delete masterProdukLokal[namaKey];
+                    if (currentUser) {
+                        database.ref(`kasir_users/${currentUser.uid}/master_produk`).set(masterProdukLokal)
+                        .then(() => {
+                            Swal.fire({ title: "Terhapus!", text: `Produk "${namaKey}" berhasil dihapus.`, icon: "success", timer: 1500, showConfirmButton: false, customClass: { popup: 'rounded-4' } });
+                            window.batalEditMasterProduk();
+                        });
+                    }
+                }
+            });
+        };
     </script>
 </body>
 </html>
