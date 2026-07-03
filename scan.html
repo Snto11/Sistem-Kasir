@@ -104,7 +104,7 @@
                     <button id="btnSimpanBarcode" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm" onclick="kirimBarcodeKeMaster()">💾 Simpan</button>
                 </div>
                 <div class="col">
-                    <a href="index.html" class="btn btn-secondary btn-sm w-100 fw-bold shadow-sm">🔙 Kembali</a>
+                    <a href="index.html?aksi=buka_master" class="btn btn-secondary btn-sm w-100 fw-bold shadow-sm">🔙 Kembali</a>
                 </div>
             </div>
         </div>
@@ -117,7 +117,6 @@
             const boxTombolSimpan = document.getElementById('boxTombolSimpan');
             let sudahAda = false;
 
-            // Cek kecocokan data dengan cloud database
             for (let nama in masterProdukLokal) {
                 if (masterProdukLokal[nama].barcode && masterProdukLokal[nama].barcode === decodedText) {
                     sudahAda = true;
@@ -125,9 +124,8 @@
                 }
             }
 
-            // REVISI FITUR: SEMBUNYIKAN TOMBOL JIKA BARCODE SUDAH PERNAH TERDAFTAR
             if (sudahAda) {
-                boxTombolSimpan.classList.add('d-none'); // Tombol hilang sembuh dari layar
+                boxTombolSimpan.classList.add('d-none');
                 Swal.fire({ 
                     title: "Sudah Terdaftar! ⚠️", 
                     text: `Barcode ${decodedText} sudah terdaftar di sistem, tombol simpan disembunyikan.`, 
@@ -135,7 +133,7 @@
                     customClass: { popup: 'rounded-4' } 
                 });
             } else {
-                boxTombolSimpan.classList.remove('d-none'); // Tampilkan kembali jika ganti scan barcode baru
+                boxTombolSimpan.classList.remove('d-none');
                 Swal.fire({ title: "Terbaca! 🎉", text: `Kode: ${decodedText}`, icon: "success", timer: 1000, showConfirmButton: false, customClass: { popup: 'rounded-4' } });
             }
         }
@@ -156,7 +154,6 @@
 
         function resetFormScanner() {
             document.getElementById('scanBarcodeBarang').value = '';
-            // Tampilkan kembali tombol simpan saat input dikosongkan
             document.getElementById('boxTombolSimpan').classList.remove('d-none');
         }
 

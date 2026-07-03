@@ -413,22 +413,25 @@
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
 
-                // REVISI FITUR: CEK APAKAH ADA KIRIMAN BARCODE BARU DARI SCAN.HTML UNTUK DIDAFTARKAN
+                // CEK APAKAH ADA KIRIMAN BARCODE BARU DARI SCAN.HTML UNTUK DIDAFTARKAN
                 const barcodeBaruDariScan = urlParams.get('scan_barcode');
                 if (barcodeBaruDariScan) {
-                    // Bersihkan parameter di URL agar tidak memicu ulang jika tidak sengaja direfresh
                     window.history.replaceState({}, document.title, window.location.pathname);
-                    
-                    // Jalankan fungsi modal pendaftaran barang dan isi kode barcodenya secara otomatis
                     bukaManajemenHarga();
                     setTimeout(() => {
                         const inputBarcodeModal = document.getElementById('swalBarcodeBarang');
                         if (inputBarcodeModal) {
                             inputBarcodeModal.value = barcodeBaruDariScan;
-                            // Fokuskan kursor langsung ke input nama barang agar kasir tinggal mengetik namanya
                             document.getElementById('swalNamaBarang').focus();
                         }
                     }, 600);
+                }
+
+                // REVISI FITUR: CEK APAKAH ADA AKSI DARI TOMBOL KEMBALI DI SCAN.HTML UNTUK LANGSUNG BUKA MASTER PRODUK
+                const aksiKirim = urlParams.get('aksi');
+                if (aksiKirim === 'buka_master') {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    bukaManajemenHarga(); // Otomatis trigger popup tabel pengaturan produk
                 }
             });
             database.ref(`kasir_users/${uid}/riwayat_penjualan`).on('value', (snapshot) => {
@@ -446,7 +449,7 @@
         }
 
         const inputHargaTampilan = document.getElementById('hargaTampilan');
-        const inputJumlah = document.getElementById('jumlahPembelian');
+        const inputJanela = document.getElementById('jumlahPembelian');
         const inputUangFisikTampilan = document.getElementById('uangFisikTampilan');
         const inputUangDiterimaTampilan = document.getElementById('uangDiterimaTampilan');
 
@@ -466,9 +469,9 @@
             hitungKalkulatorSeketika();
         });
 
-        inputJumlah.addEventListener('input', function () {
+        document.getElementById('jumlahPembelian').addEventListener('input', function () {
             const namaInput = document.getElementById('namaBarang').value;
-            const jumlahInput = Number(inputJumlah.value) || 0;
+            const jumlahInput = Number(document.getElementById('jumlahPembelian').value) || 0;
 
             if (masterProdukLokal.hasOwnProperty(namaInput)) {
                 let totalDipesan = jumlahInput;
@@ -520,7 +523,7 @@
         });
 
         function hitungKalkulatorSeketika() {
-            const jumlah = Number(inputJumlah.value) || 0;
+            const jumlah = Number(document.getElementById('jumlahPembelian').value) || 0;
             const subtotalBarangIni = hargaAsli * jumlah;
             document.getElementById('textSubtotalSeketika').innerText = "Rp " + formatRupiah(subtotalBarangIni);
 
@@ -638,7 +641,7 @@
             e.preventDefault();
             const idData = document.getElementById('rowId').value;
             const namaInput = document.getElementById('namaBarang').value;
-            const jumlahInput = Number(inputJumlah.value);
+            const jumlahInput = Number(document.getElementById('jumlahPembelian').value);
 
             if (idData !== "") {
                 const jenisBayarEdit = document.getElementById('jenisPembayaran').value;
@@ -660,7 +663,7 @@
 
             document.getElementById('namaBarang').value = ""; document.getElementById('namaBarang').readOnly = false;
             inputHargaTampilan.value = ""; inputHargaTampilan.readOnly = false;
-            inputJumlah.value = ""; inputJumlah.placeholder = "0";
+            document.getElementById('jumlahPembelian').value = ""; document.getElementById('jumlahPembelian').placeholder = "0";
             document.getElementById('infoStokTersedia').innerText = ""; hargaAsli = 0;
 
             perbaruiTampilanRincian(); hitungKalkulatorSeketika(); normalisaiTombolSimpan(); aturTampilanInputPembayaran();
@@ -725,13 +728,13 @@
                 document.getElementById('infoStokTersedia').innerText = `(Tersedia: ${masterProdukLokal[nama].stok} Pcs)`;
 
                 if (masterProdukLokal[nama].stok <= 0) {
-                    inputJumlah.type = "text"; inputJumlah.value = ""; inputJumlah.placeholder = "Stok habis"; inputJumlah.disabled = true;
+                    document.getElementById('jumlahPembelian').type = "text"; document.getElementById('jumlahPembelian').value = ""; document.getElementById('jumlahPembelian').placeholder = "Stok habis"; document.getElementById('jumlahPembelian').disabled = true;
                     const btnSimpan = document.getElementById('btnSimpan'); btnSimpan.disabled = true; btnSimpan.innerText = "⚠️ Barang Tidak Cukup"; btnSimpan.className = "btn btn-danger btn-lg w-100 fw-bold shadow-sm";
                 } else {
-                    inputJumlah.type = "number"; inputJumlah.disabled = false; inputJumlah.placeholder = "0"; inputJumlah.value = jumlah; normalisaiTombolSimpan();
+                    document.getElementById('jumlahPembelian').type = "number"; document.getElementById('jumlahPembelian').disabled = false; document.getElementById('jumlahPembelian').placeholder = "0"; document.getElementById('jumlahPembelian').value = jumlah; normalisaiTombolSimpan();
                 }
             } else {
-                document.getElementById('namaBarang').readOnly = false; inputHargaTampilan.readOnly = false; document.getElementById('infoStokTersedia').innerText = ""; inputJumlah.type = "number"; inputJumlah.disabled = false; inputJumlah.value = jumlah; normalisaiTombolSimpan();
+                document.getElementById('namaBarang').readOnly = false; inputHargaTampilan.readOnly = false; document.getElementById('infoStokTersedia').innerText = ""; document.getElementById('jumlahPembelian').type = "number"; document.getElementById('jumlahPembelian').disabled = false; document.getElementById('jumlahPembelian').value = jumlah; normalisaiTombolSimpan();
             }
             perbaruiTampilanRincian(); aturTampilanInputPembayaran();
             document.getElementById('boxSplitPembayaran').classList.add('d-none'); checkSplitTF.checked = false;
@@ -793,7 +796,7 @@
             perbaruiTampilanRincian(); document.getElementById('textSubtotalSeketika').innerText = "Rp 0"; document.getElementById('textKembalianSeketika').innerText = "Rp 0"; document.getElementById('textKembalianSeketika').className = "fs-5 fw-bold text-danger";
             document.getElementById('boxSplitPembayaran').classList.add('d-none'); checkSplitTF.checked = false;
             document.getElementById('namaBarang').readOnly = false; inputHargaTampilan.readOnly = false;
-            inputJumlah.type = "number"; inputJumlah.disabled = false; inputJumlah.placeholder = "0";
+            document.getElementById('jumlahPembelian').type = "number"; document.getElementById('jumlahPembelian').disabled = false; document.getElementById('jumlahPembelian').placeholder = "0";
             
             inputUangDiterimaTampilan.readOnly = false;
             document.getElementById('infoMultiBarang').classList.add('d-none');
@@ -873,14 +876,14 @@
                 hargaAsli = produkDitemukan.harga; inputHarga.value = formatRupiah(produkDitemukan.harga);
                 document.getElementById('infoStokTersedia').innerText = `(Tersedia: ${produkDitemukan.stok} Pcs)`;
                 if (produkDitemukan.stok <= 0) {
-                    inputJumlah.type = "text"; inputJumlah.value = ""; inputJumlah.placeholder = "Stok habis"; inputJumlah.disabled = true;
+                    document.getElementById('jumlahPembelian').type = "text"; document.getElementById('jumlahPembelian').value = ""; document.getElementById('jumlahPembelian').placeholder = "Stok habis"; document.getElementById('jumlahPembelian').disabled = true;
                     const btnSimpan = document.getElementById('btnSimpan'); btnSimpan.disabled = true; btnSimpan.innerText = "⚠️ Barang Tidak Cukup";
                 } else {
-                    inputJumlah.type = "number"; inputJumlah.disabled = false; inputJumlah.placeholder = "0"; normalisaiTombolSimpan();
+                    document.getElementById('jumlahPembelian').type = "number"; document.getElementById('jumlahPembelian').disabled = false; document.getElementById('jumlahPembelian').placeholder = "0"; normalisaiTombolSimpan();
                 }
                 inputNama.readOnly = true; inputHarga.readOnly = true; hitungKalkulatorSeketika();
             } else if (namaInputVal === "") {
-                inputNama.readOnly = false; inputHarga.readOnly = false; inputJumlah.disabled = false; document.getElementById('infoStokTersedia').innerText = ""; normalisaiTompanSimpan();
+                inputNama.readOnly = false; inputHarga.readOnly = false; document.getElementById('jumlahPembelian').disabled = false; document.getElementById('infoStokTersedia').innerText = ""; normalisaiTombolSimpan();
             }
         }
 
