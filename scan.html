@@ -75,7 +75,6 @@
                 window.location.href = 'login.html';
             } else {
                 currentUser = user;
-                // Ambil data untuk validasi real-time apakah barcode sudah ada atau belum
                 database.ref(`kasir_users/${user.uid}/master_produk`).on('value', (snapshot) => {
                     masterProdukLokal = snapshot.val() || {};
                 });
@@ -101,11 +100,11 @@
             </div>
 
             <div class="row g-2">
-                <div class="col-8">
+                <div class="col" id="boxTombolSimpan">
                     <button id="btnSimpanBarcode" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm" onclick="kirimBarcodeKeMaster()">💾 Simpan</button>
                 </div>
-                <div class="col-4">
-                    <a href="index.html" class="btn btn-secondary btn-sm w-100 fw-bold shadow-sm">🔙 Batal</a>
+                <div class="col">
+                    <a href="index.html" class="btn btn-secondary btn-sm w-100 fw-bold shadow-sm">🔙 Kembali</a>
                 </div>
             </div>
         </div>
@@ -115,11 +114,10 @@
         function onScanSuccess(decodedText, decodedResult) {
             document.getElementById('scanBarcodeBarang').value = decodedText;
             
-            // Ambil element tombol simpan
-            const btnSimpan = document.getElementById('btnSimpanBarcode');
+            const boxTombolSimpan = document.getElementById('boxTombolSimpan');
             let sudahAda = false;
 
-            // Logika validasi: Cek apakah barcode ini sudah dipakai oleh barang lain di firebase
+            // Cek kecocokan data dengan cloud database
             for (let nama in masterProdukLokal) {
                 if (masterProdukLokal[nama].barcode && masterProdukLokal[nama].barcode === decodedText) {
                     sudahAda = true;
@@ -127,14 +125,17 @@
                 }
             }
 
-            // REVISI FITUR: JIKA SUDAH ADA, UBAH TOMBOL MENJADI MERAH DAN TEKS "SUDAH ADA"
+            // REVISI FITUR: SEMBUNYIKAN TOMBOL JIKA BARCODE SUDAH PERNAH TERDAFTAR
             if (sudahAda) {
-                btnSimpan.className = "btn btn-danger btn-sm w-100 fw-bold shadow-sm";
-                btnSimpan.innerText = "🛑 Sudah Ada";
-                Swal.fire({ title: "Sudah Terdaftar! ⚠️", text: `Barcode ${decodedText} sudah ada di data produk harian.`, icon: "info", customClass: { popup: 'rounded-4' } });
+                boxTombolSimpan.classList.add('d-none'); // Tombol hilang sembuh dari layar
+                Swal.fire({ 
+                    title: "Sudah Terdaftar! ⚠️", 
+                    text: `Barcode ${decodedText} sudah terdaftar di sistem, tombol simpan disembunyikan.`, 
+                    icon: "info", 
+                    customClass: { popup: 'rounded-4' } 
+                });
             } else {
-                btnSimpan.className = "btn btn-primary btn-sm w-100 fw-bold shadow-sm";
-                btnSimpan.innerText = "💾 Simpan";
+                boxTombolSimpan.classList.remove('d-none'); // Tampilkan kembali jika ganti scan barcode baru
                 Swal.fire({ title: "Terbaca! 🎉", text: `Kode: ${decodedText}`, icon: "success", timer: 1000, showConfirmButton: false, customClass: { popup: 'rounded-4' } });
             }
         }
@@ -155,20 +156,16 @@
 
         function resetFormScanner() {
             document.getElementById('scanBarcodeBarang').value = '';
-            // Kembalikan tombol ke kondisi biru semula saat dikosongkan
-            const btnSimpan = document.getElementById('btnSimpanBarcode');
-            btnSimpan.className = "btn btn-primary btn-sm w-100 fw-bold shadow-sm";
-            btnSimpan.innerText = "💾 Simpan";
+            // Tampilkan kembali tombol simpan saat input dikosongkan
+            document.getElementById('boxTombolSimpan').classList.remove('d-none');
         }
 
-        // FUNGSI OPER DATA LANGSUNG KE HALAMAN UTAMA KASIR
         function kirimBarcodeKeMaster() {
             const barcode = document.getElementById('scanBarcodeBarang').value.trim();
             if (!barcode) {
                 Swal.fire({ title: "Scan Belum Ada", text: "Silakan lakukan pemindaian barcode produk terlebih dahulu!", icon: "warning", customClass: { popup: 'rounded-4' } });
                 return;
             }
-            // Teruskan kode ke index.html dengan parameter khusus
             window.location.href = `index.html?scan_barcode=${encodeURIComponent(barcode)}`;
         }
     </script>
