@@ -413,7 +413,10 @@
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
 
+                // REVISI FITUR: OPTIMALISASI MODAL INSTAN TANPA KEDIPAN LATAR BELAKANG
                 const barcodeBaruDariScan = urlParams.get('scan_barcode');
+                const aksiKirim = urlParams.get('aksi');
+
                 if (barcodeBaruDariScan) {
                     window.history.replaceState({}, document.title, window.location.pathname);
                     bukaManajemenHarga();
@@ -423,13 +426,10 @@
                             inputBarcodeModal.value = barcodeBaruDariScan;
                             document.getElementById('swalNamaBarang').focus();
                         }
-                    }, 600);
-                }
-
-                const aksiKirim = urlParams.get('aksi');
-                if (aksiKirim === 'buka_master') {
+                    }, 50); // Mempercepat waktu pemicu pengisian
+                } else if (aksiKirim === 'buka_master') {
                     window.history.replaceState({}, document.title, window.location.pathname);
-                    bukaManajemenHarga();
+                    bukaManajemenHarga(); // Langsung eksekusi buka modal tanpa tunggu rendering lama
                 }
             });
             database.ref(`kasir_users/${uid}/riwayat_penjualan`).on('value', (snapshot) => {
@@ -711,7 +711,7 @@
             antreanKeranjangSeketika = [];
             document.getElementById('formTitle').innerText = "✏️ Edit Penjualan";
             document.getElementById('formTitle').className = "text-center mb-4 fw-bold text-warning";
-            document.getElementById('btnBatal').classList.add('d-none');
+            document.getElementById('btnBatal').classList.remove('d-none');
             document.getElementById('btnSelesaiMulti').classList.add('d-none');
             document.getElementById('infoMultiBarang').classList.add('d-none');
 
