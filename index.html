@@ -213,7 +213,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h3 id="formTitle" class="m-0 fw-bold text-primary" style="font-size: 1.5rem;">🛒 Input Penjualan</h3>
                         <div class="d-flex flex-column align-items-end">
-                            <button type="button" class="btn btn-outline-secondary btn-sm fw-bold shadow-sm" onclick="bukaManajemenHarga()">⚙️ Atur Produk</button>
+                            <a href="db_produk.html" class="btn btn-outline-secondary btn-sm fw-bold shadow-sm">⚙️ Atur Produk</a>
                         </div>
                     </div>
 
@@ -398,7 +398,7 @@
         <div class="row mt-5">
             <div class="col-12">
                 <div class="footer-copyright">
-                    <p class="text-update-info">Terakhir Diperbarui: 4 Juli 2026</p>
+                    <p class="text-update-info">Terakhir Diperbarui: 3 Juli 2026</p>
                     <p class="m-0">© 2026 Web Cashier. All Rights Reserved.</p>
                 </div>
             </div>
@@ -433,34 +433,6 @@
                     document.getElementById('namaBarang').value = namaKirim;
                     autoFillHarga();
                     window.history.replaceState({}, document.title, window.location.pathname);
-                }
-
-                const barcodeBaruDariScan = urlParams.get('scan_barcode');
-                const aksiKirim = urlParams.get('aksi');
-
-                if (barcodeBaruDariScan) {
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    bukaManajemenHarga();
-                    setTimeout(() => {
-                        const inputBarcodeModal = document.getElementById('swalBarcodeBarang');
-                        if (inputBarcodeModal) {
-                            inputBarcodeModal.value = barcodeBaruDariScan;
-                            document.getElementById('swalNamaBarang').focus();
-                        }
-                    }, 50);
-                } else if (aksiKirim === 'buka_master') {
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    bukaManajemenHarga();
-                }
-
-                if (antreanKeranjangSeketika.length > 0) {
-                    document.getElementById('infoMultiBarang').classList.remove('d-none');
-                    document.getElementById('labelSubtotal').innerText = "Subtotal (Barang Terakhir):";
-                    document.getElementById('infoMultiBarang').querySelector('span:first-child').innerText = `Total Gabungan (${antreanKeranjangSeketika.length} Barang):`;
-                    perbaruiTampilanRincian();
-                    hitungKalkulatorSeketika();
-                    normalisaiTombolSimpan();
-                    aturTampilanInputPembayaran();
                 }
             });
             database.ref(`kasir_users/${uid}/riwayat_penjualan`).on('value', (snapshot) => {
@@ -610,7 +582,6 @@
             });
         }
 
-        // REVISI FITUR: FUNGSI KHUSUS UNTUK MEMBATALKAN DAN MENGOSONGKAN ANTREAD KERANJANG GABUNGAN
         window.batalSeluruhAntreanKeranjang = function() {
             Swal.fire({
                 title: "Batalkan Belanjaan?",
@@ -945,71 +916,6 @@
                 inputNama.readOnly = false; inputHarga.readOnly = false; document.getElementById('jumlahPembelian').disabled = false; document.getElementById('infoStokTersedia').innerText = ""; normalisaiTombolSimpan();
             }
         }
-
-        function bukaManajemenHarga() {
-            let barisTabel = ''; let nomorUrutMaster = 1;
-            for (let nama in masterProdukLokal) {
-                let barcodeTampil = masterProdukLokal[nama].barcode ? `<br><small class="text-muted fw-mono" style="font-size: 0.75rem;">📋 ${masterProdukLokal[nama].barcode}</small>` : '';
-                barisTabel += `<tr class="produk-row" data-nama="${nama.toLowerCase()}" data-barcode="${(masterProdukLokal[nama].barcode || '').toLowerCase()}"><td class="text-muted fw-semibold small">${nomorUrutMaster++}</td><td class="text-start small nama-produk-kolom"><span class="fw-bold">${nama}</span>${barcodeTampil}</td><td class="text-end small">Rp ${formatRupiah(masterProdukLokal[nama].harga)}</td><td class="text-center small fw-semibold text-primary">${masterProdukLokal[nama].stok} pcs</td><td><div class="d-flex flex-row justify-content-center align-items-center"><button class="btn btn-warning btn-sm p-1 py-0 shadow-sm me-1" onclick="isiFormMasterProduk('${nama}', ${masterProdukLokal[nama].harga}, ${masterProdukLokal[nama].stok}, '${masterProdukLokal[nama].barcode || ''}')">✏️</button><button class="btn btn-danger btn-sm p-1 py-0 shadow-sm" onclick="hapusMasterProduk('${nama}')">🗑️</button></div></td></tr>`;
-            }
-
-            Swal.fire({
-                title: "⚙️ Atur Daftar Produk & Harga",
-                html: `<div class="p-1"><div class="card p-2 bg-light border text-start mb-3" style="font-size:0.85rem;"><label class="fw-bold text-secondary mb-1" id="swalLabelInput">➕ Tambah / Update Produk:</label><input type="text" id="swalNamaBarang" class="form-control form-control-sm mb-2" placeholder="Nama Barang"><div class="d-flex gap-2 mb-2"><input type="text" id="swalBarcodeBarang" inputmode="numeric" pattern="[0-9]*" class="form-control form-control-sm fw-mono w-75" placeholder="Kode Barcode (Opsional)"><a href="scan.html" class="btn btn-primary btn-sm fw-bold d-flex align-items-center justify-content-center" title="Buka Kamera Scan Master" style="width: 45px;"><span class="material-symbols-outlined" style="color: white;">barcode_reader</span></a></div><div class="input-group input-group-sm mb-2"><span class="input-group-text">Rp</span><input type="text" id="swalHargaBarangTampilan" inputmode="numeric" class="form-control" placeholder="Harga Satuan"></div><input type="number" id="swalStokBarang" class="form-control form-control-sm mb-2" placeholder="Jumlah Sisa Stok"><div id="swalWadahTombol"><button class="btn btn-primary btn-sm w-100 fw-bold" id="swalBtnSimpan" onclick="simpanMasterProduk()">💾 Simpan ke Sistem</button></div></div><div class="mb-2"><input type="text" id="swalCariProduk" class="form-control form-control-sm" placeholder="🔍 Cari nama atau barcode..."></div><div class="table-responsive border rounded" style="max-height: 200px; overflow-y: auto;"><table class="table table-sm table-hover text-center m-0" id="swalTabelMaster"><thead class="table-secondary small sticky-top"><tr><th>No</th><th>Nama Barang</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead><tbody>${barisTabel || '<tr><td colspan="5" class="text-muted py-2">Belum ada daftar daftar dynamic produk.</td></tr>'}</tbody></table></div></div>`,
-                showConfirmButton: true, confirmButtonText: "Keluar", confirmButtonColor: "#6c757d", customClass: { popup: 'rounded-4' },
-                didOpen: () => {
-                    document.getElementById('swalHargaBarangTampilan').addEventListener('input', function (e) { e.target.value = formatRupiah(e.target.value.replace(/\D/g, "")); });
-                    document.getElementById('swalCariProduk').addEventListener('input', function (e) {
-                        const kataKunci = e.target.value.toLowerCase().trim();
-                        document.querySelectorAll('#swalTabelMaster tbody .produk-row').forEach(row => {
-                            if (row.getAttribute('data-nama').includes(kataKunci) || row.getAttribute('data-barcode').includes(kataKunci)) row.style.setProperty('display', '', 'important');
-                            else row.style.setProperty('display', 'none', 'important');
-                        });
-                    });
-                }
-            });
-        }
-
-        let namaProdukLamaYangSedangDiedit = "";
-        window.isiFormMasterProduk = function (nama, harga, stok, barcode) {
-            document.getElementById('swalNamaBarang').value = nama;
-            document.getElementById('swalBarcodeBarang').value = barcode;
-            document.getElementById('swalHargaBarangTampilan').value = formatRupiah(harga);
-            document.getElementById('swalStokBarang').value = stok;
-            namaProdukLamaYangSedangDiedit = nama;
-            document.getElementById('swalLabelInput').innerText = "✏️ Edit Produk Terpilih:";
-            document.getElementById('swalWadahTombol').innerHTML = `<div class="row g-2"><div class="col-8"><button class="btn btn-warning btn-sm w-100 fw-bold shadow-sm" onclick="simpanMasterProduk()">💾 Perbarui Data Produk</button></div><div class="col-4"><button class="btn btn-secondary btn-sm w-100 fw-bold shadow-sm" onclick="window.batalEditMasterProduk()">❌ Batal</button></div></div>`;
-        };
-
-        window.batalEditMasterProduk = function () { namaProdukLamaYangSedangDiedit = ""; bukaManajemenHarga(); };
-
-        window.simpanMasterProduk = function () {
-            const nama = document.getElementById('swalNamaBarang').value.trim();
-            const barcode = document.getElementById('swalBarcodeBarang').value.trim();
-            const harga = Number(document.getElementById('swalHargaBarangTampilan').value.replace(/\D/g, "")) || 0;
-            const stok = Number(document.getElementById('swalStokBarang').value) || 0;
-
-            if (!nama || harga <= 0) { Swal.showValidationMessage("Lengkapi nama dan harga!"); return; }
-            if (namaProdukLamaYangSedangDiedit !== "" && namaProdukLamaYangSedangDiedit !== nama) delete masterProdukLokal[namaProdukLamaYangSedangDiedit];
-
-            masterProdukLokal[nama] = { harga: harga, stok: stok, barcode: barcode };
-            simpanMasterKeFirebase(masterProdukLokal);
-            namaProdukLamaYangSedangDiedit = ""; bukaManajemenHarga();
-        };
-
-        window.hapusMasterProduk = function (namaKey) {
-            Swal.fire({ title: "Hapus?", text: `Hapus "${namaKey}" dari Cloud?`, icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "Ya, Hapus!", cancelButtonText: "Batal", customClass: { popup: 'rounded-4' } }).then((result) => {
-                if (result.isConfirmed) {
-                    delete masterProdukLokal[namaKey];
-                    simpanMasterKeFirebase(masterProdukLokal);
-                    bukaManajemenHarga();
-                    Swal.fire({ title: "Terhapus!", text: `Produk "${namaKey}" berhasil dihapus.`, icon: "success", timer: 1500, showConfirmButton: false, customClass: { popup: 'rounded-4' } });
-                } else {
-                    bukaManajemenHarga();
-                }
-            });
-        };
     </script>
 </body>
-
 </html>

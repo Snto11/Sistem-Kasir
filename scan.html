@@ -104,7 +104,7 @@
                     <button id="btnSimpanBarcode" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm" onclick="kirimBarcodeKeMaster()">💾 Simpan</button>
                 </div>
                 <div class="col">
-                    <a href="index.html?aksi=buka_master" class="btn btn-secondary btn-sm w-100 fw-bold shadow-sm">🔙 Kembali</a>
+                    <a href="db_produk.html" class="btn btn-secondary btn-sm w-100 fw-bold shadow-sm">🔙 Kembali</a>
                 </div>
             </div>
         </div>
@@ -163,7 +163,8 @@
                 Swal.fire({ title: "Scan Belum Ada", text: "Silakan lakukan pemindaian barcode produk terlebih dahulu!", icon: "warning", customClass: { popup: 'rounded-4' } });
                 return;
             }
-            window.location.href = `index.html?scan_barcode=${encodeURIComponent(barcode)}`;
+            // REVISI: PENGIRIMAN DATA BARCODE LANGSUNG DIOPER KEMBALI KE DB_PRODUK.HTML
+            window.location.href = `db_produk.html?scan_barcode=${encodeURIComponent(barcode)}`;
         }
     </script>
 </body>
