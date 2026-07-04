@@ -105,7 +105,6 @@
             border-color: #dee2e6;
         }
 
-        /* CSS UNTUK MENYESUAIKAN UKURAN ICON GOOGLE AGAR PAS DI DALAM TOMBOL */
         .material-symbols-outlined {
             font-size: 20px;
             vertical-align: middle;
@@ -256,7 +255,10 @@
 
                         <div class="bg-kalkulator mb-4">
                             <div id="boxRincianMulti" class="d-none mb-3 pt-2 border-top border-secondary border-opacity-25">
-                                <span class="small fw-bold text-primary d-block mb-2">📋 Rincian Belanjaan:</span>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small fw-bold text-primary d-block">📋 Rincian Belanjaan:</span>
+                                    <button type="button" class="btn btn-danger btn-xs py-0 px-2 fw-bold text-uppercase" style="font-size: 0.7rem; border-radius: 4px;" onclick="batalSeluruhAntreanKeranjang()" title="Kosongkan Rincian Belanjaan">❌ Batal</button>
+                                </div>
                                 <div class="d-flex text-muted fw-bold pb-1 mb-1 border-bottom" style="font-size: 0.75rem;">
                                     <span style="width: 35%;">Nama</span>
                                     <span style="width: 25%;">Harga</span>
@@ -608,6 +610,27 @@
             });
         }
 
+        // REVISI FITUR: FUNGSI KHUSUS UNTUK MEMBATALKAN DAN MENGOSONGKAN ANTREAD KERANJANG GABUNGAN
+        window.batalSeluruhAntreanKeranjang = function() {
+            Swal.fire({
+                title: "Batalkan Belanjaan?",
+                text: "Seluruh antrean rincian barang sementara ini akan dikosongkan!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#dc3545",
+                confirmButtonText: "Ya, Batalkan!",
+                cancelButtonText: "Kembali",
+                customClass: { popup: 'rounded-4' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    antreanKeranjangSeketika = [];
+                    sessionStorage.removeItem('cadangan_keranjang_kasir');
+                    resetForm();
+                    Swal.fire({ title: "Dikosongkan!", text: "Rincian belanjaan berhasil dibersihkan.", icon: "success", timer: 1500, showConfirmButton: false, customClass: { popup: 'rounded-4' } });
+                }
+            });
+        }
+
         function muatDataLokal() {
             const tbody = document.getElementById('tabelBody');
             tbody.innerHTML = '';
@@ -932,8 +955,7 @@
 
             Swal.fire({
                 title: "⚙️ Atur Daftar Produk & Harga",
-                // REVISI TOMBOL 2 (MODAL): MENGGUNAKAN MATERIAL ICON GOOGLE & MENGHAPUS TEKS SCAN
-                html: `<div class="p-1"><div class="card p-2 bg-light border text-start mb-3" style="font-size:0.85rem;"><label class="fw-bold text-secondary mb-1" id="swalLabelInput">➕ Tambah / Update Produk:</label><input type="text" id="swalNamaBarang" class="form-control form-control-sm mb-2" placeholder="Nama Barang"><div class="d-flex gap-2 mb-2"><input type="text" id="swalBarcodeBarang" inputmode="numeric" pattern="[0-9]*" class="form-control form-control-sm fw-mono w-75" placeholder="Kode Barcode (Opsional)"><a href="scan.html" class="btn btn-primary btn-sm fw-bold d-flex align-items-center justify-content-center" title="Buka Kamera Scan Master" style="width: 45px;"><span class="material-symbols-outlined" style="color: white;">barcode_reader</span></a></div><div class="input-group input-group-sm mb-2"><span class="input-group-text">Rp</span><input type="text" id="swalHargaBarangTampilan" inputmode="numeric" class="form-control" placeholder="Harga Satuan"></div><input type="number" id="swalStokBarang" class="form-control form-control-sm mb-2" placeholder="Jumlah Sisa Stok"><div id="swalWadahTombol"><button class="btn btn-primary btn-sm w-100 fw-bold" id="swalBtnSimpan" onclick="simpanMasterProduk()">💾 Simpan ke Sistem</button></div></div><div class="mb-2"><input type="text" id="swalCariProduk" class="form-control form-control-sm" placeholder="🔍 Cari nama atau barcode..."></div><div class="table-responsive border rounded" style="max-height: 200px; overflow-y: auto;"><table class="table table-sm table-hover text-center m-0" id="swalTabelMaster"><thead class="table-secondary small sticky-top"><tr><th>No</th><th>Nama Barang</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead><tbody>${barisTabel || '<tr><td colspan="5" class="text-muted py-2">Belum ada daftar daftar produk.</td></tr>'}</tbody></table></div></div>`,
+                html: `<div class="p-1"><div class="card p-2 bg-light border text-start mb-3" style="font-size:0.85rem;"><label class="fw-bold text-secondary mb-1" id="swalLabelInput">➕ Tambah / Update Produk:</label><input type="text" id="swalNamaBarang" class="form-control form-control-sm mb-2" placeholder="Nama Barang"><div class="d-flex gap-2 mb-2"><input type="text" id="swalBarcodeBarang" inputmode="numeric" pattern="[0-9]*" class="form-control form-control-sm fw-mono w-75" placeholder="Kode Barcode (Opsional)"><a href="scan.html" class="btn btn-primary btn-sm fw-bold d-flex align-items-center justify-content-center" title="Buka Kamera Scan Master" style="width: 45px;"><span class="material-symbols-outlined" style="color: white;">barcode_reader</span></a></div><div class="input-group input-group-sm mb-2"><span class="input-group-text">Rp</span><input type="text" id="swalHargaBarangTampilan" inputmode="numeric" class="form-control" placeholder="Harga Satuan"></div><input type="number" id="swalStokBarang" class="form-control form-control-sm mb-2" placeholder="Jumlah Sisa Stok"><div id="swalWadahTombol"><button class="btn btn-primary btn-sm w-100 fw-bold" id="swalBtnSimpan" onclick="simpanMasterProduk()">💾 Simpan ke Sistem</button></div></div><div class="mb-2"><input type="text" id="swalCariProduk" class="form-control form-control-sm" placeholder="🔍 Cari nama atau barcode..."></div><div class="table-responsive border rounded" style="max-height: 200px; overflow-y: auto;"><table class="table table-sm table-hover text-center m-0" id="swalTabelMaster"><thead class="table-secondary small sticky-top"><tr><th>No</th><th>Nama Barang</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead><tbody>${barisTabel || '<tr><td colspan="5" class="text-muted py-2">Belum ada daftar daftar dynamic produk.</td></tr>'}</tbody></table></div></div>`,
                 showConfirmButton: true, confirmButtonText: "Keluar", confirmButtonColor: "#6c757d", customClass: { popup: 'rounded-4' },
                 didOpen: () => {
                     document.getElementById('swalHargaBarangTampilan').addEventListener('input', function (e) { e.target.value = formatRupiah(e.target.value.replace(/\D/g, "")); });
