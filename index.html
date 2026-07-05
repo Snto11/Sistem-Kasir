@@ -475,7 +475,6 @@
         let nilaiCashAsliSimpanan = 0;
         let nilaiTfAsliSimpanan = 0;
 
-        // REVISI FITUR: HANDLER UNTUK MENGUNCI/MEMBUKA INPUTAN BARANG BERDASARKAN CHECKBOX
         window.toggleTanpaNamaBarang = function() {
             const checkTanpaNama = document.getElementById('checkTanpaNama');
             const inputNama = document.getElementById('namaBarang');
@@ -632,7 +631,8 @@
                 if (result.isConfirmed) {
                     antreanKeranjangSeketika = [];
                     sessionStorage.removeItem('cadangan_keranjang_kasir');
-                    resetForm();
+                    // Memicu reset total termasuk melepas centang checkbox
+                    resetForm(true);
                     Swal.fire({ title: "Dikosongkan!", text: "Rincian belanjaan berhasil dibersihkan.", icon: "success", timer: 1500, showConfirmButton: false, customClass: { popup: 'rounded-4' } });
                 }
             });
@@ -699,7 +699,6 @@
             const jumlahInput = Number(document.getElementById('jumlahPembelian').value);
             const checkTanpaNama = document.getElementById('checkTanpaNama');
 
-            // REVISI FITUR: JIKA CHECKBOX AKTIF, BERIKAN NAMA DEFAULT BARANG MANUAL
             if (checkTanpaNama.checked) {
                 namaInput = "Barang Manual";
             }
@@ -713,7 +712,7 @@
                 dataPenjualanLokal[idData] = { namaBarang: namaInput, hargaBarang: hargaAsli, jumlahPembelian: jumlahInput, jenisPembayaran: jenisBayarEdit };
                 simpanRiwayatKeFirebase(dataPenjualanLokal);
                 Swal.fire({ title: "Diperbarui!", text: "Transaksi berhasil diubah.", icon: "success", timer: 1500, showConfirmButton: false });
-                resetForm(); return;
+                resetForm(true); return; // Dipaksa reset penuh saat selesai edit data
             }
 
             antreanKeranjangSeketika.push({ namaBarang: namaInput, hargaBarang: hargaAsli, jumlahPembelian: jumlahInput });
@@ -725,20 +724,20 @@
             document.getElementById('labelSubtotal').innerText = "Subtotal (Barang Terakhir):";
             document.getElementById('infoMultiBarang').querySelector('span:first-child').innerText = `Total Gabungan (${antreanKeranjangSeketika.length} Barang):`;
 
-            // SELESAI ADD, RESET INPUT FORM KEMBALI
+            // REVISI: MEMBERSIHKAN FORM UTAMA UTK BARANG BARU NAMUN PERTAHANKAN CENTANG JIKA SEDANG AKTIF
             document.getElementById('namaBarang').value = ""; 
-            document.getElementById('namaBarang').readOnly = false;
             inputHargaTampilan.value = ""; 
-            inputHargaTampilan.readOnly = false;
             document.getElementById('jumlahPembelian').value = ""; 
             document.getElementById('jumlahPembelian').placeholder = "0";
             document.getElementById('infoStokTersedia').innerText = ""; 
             hargaAsli = 0;
 
-            // RESET STATE CHECKBOX KEMBALI NORMAL
-            checkTanpaNama.checked = false;
-            document.getElementById('namaBarang').disabled = false;
-            document.getElementById('namaBarang').required = true;
+            // Jika posisi tercentang, fokuskan langsung ke harga barang kembali
+            if (checkTanpaNama.checked) {
+                document.getElementById('hargaTampilan').focus();
+            } else {
+                document.getElementById('namaBarang').focus();
+            }
 
             perbaruiTampilanRincian(); hitungKalkulatorSeketika(); normalisaiTombolSimpan(); aturTampilanInputPembayaran();
         });
@@ -784,7 +783,7 @@
             
             antreanKeranjangSeketika = []; 
             sessionStorage.removeItem('cadangan_keranjang_kasir');
-            resetForm();
+            resetForm(true); // REVISI: MELEPAS CENTANG CHECKBOX SAAT TRANSAKSI BERHASIL DISIMPAN SEMUA
         }
 
         function siapEdit(index, nama, price, jumlah, pembayaran) {
@@ -801,7 +800,6 @@
             document.getElementById('namaBarang').value = nama;
             inputHargaTampilan.value = formatRupiah(price); hargaAsli = price;
 
-            // Nonaktifkan checkbox jika sedang mengedit data lama
             document.getElementById('checkTanpaNama').checked = false;
             document.getElementById('namaBarang').disabled = false;
 
@@ -871,7 +869,8 @@
             hitungKalkulatorSeketika();
         }
 
-        function resetForm() {
+        // REVISI PARAMETER: MENERIMA PARAMETER UNTUK MEMAKSA UNCHECK CHECKBOX HANYA DI MOMEN TERTENTU
+        function resetForm(forceUncheckMaster = false) {
             document.getElementById('formPenjualan').reset(); document.getElementById('rowId').value = "";
             document.getElementById('formTitle').innerText = "🛒 Input Penjualan"; document.getElementById('formTitle').className = "text-center mb-4 fw-bold text-primary";
             document.getElementById('btnBatal').classList.add('d-none'); document.getElementById('infoStokTersedia').innerText = "";
@@ -879,10 +878,21 @@
             
             sessionStorage.removeItem('cadangan_keranjang_kasir');
 
-            // KEMBALIKAN KOLOM INPUT KODE BARANG KE DEFAUTNYA
-            document.getElementById('checkTanpaNama').checked = false;
-            document.getElementById('namaBarang').disabled = false;
-            document.getElementById('namaBarang').required = true;
+            // Lepas centang jika dipicu oleh tombol Batal Rincian atau Selesai Transaksi
+            if (forceUncheckMaster) {
+                document.getElementById('checkTanpaNama').checked = false;
+            }
+
+            // Kembalikan keadaan form sesuai dengan status checkTanpaNama saat ini
+            const checkTanpaNama = document.getElementById('checkTanpaNama');
+            if (checkTanpaNama.checked) {
+                document.getElementById('namaBarang').disabled = true;
+                document.getElementById('namaBarang').required = false;
+            } else {
+                document.getElementById('namaBarang').disabled = false;
+                document.getElementById('namaBarang').required = true;
+            }
+            
             document.getElementById('namaBarang').readOnly = false; 
             inputHargaTampilan.readOnly = false;
             document.getElementById('jumlahPembelian').type = "number"; 
@@ -899,7 +909,7 @@
         }
 
         function downloadPDFDataOnly() {
-            if (dataPenjualanLokal.length === 0) { alert("Tidak ada data transaksi."); return; }
+            if (dataPenjokalLokal.length === 0) { alert("Tidak ada data transaksi."); return; }
             document.getElementById('printTanggal').innerText = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
             window.print();
         }
