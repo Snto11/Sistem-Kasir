@@ -100,6 +100,7 @@
 </head>
 
 <body>
+
     <script src="firebase-config.js"></script>
 
     <script>
@@ -118,7 +119,7 @@
     </script>
 
     <div id="appContainer" class="container-fluid py-5 px-4 d-none">
-        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border" id="navUserArea">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border gap-3" id="navUserArea">
             <div class="d-flex align-items-center gap-2">
                 <img id="userPhoto" src="" alt="User" class="rounded-circle border border-primary border-2" style="width: 40px; height: 40px;">
                 <div>
@@ -126,7 +127,10 @@
                     <small class="text-muted" id="userEmail">Memuat Email...</small>
                 </div>
             </div>
-            <button class="btn btn-sm btn-danger fw-bold shadow-sm" onclick="auth.signOut()">👋 Logout</button>
+            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
+                <a href="penjualan.html" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm py-2 px-3">📊 Data & Omset Penjualan</a>
+                <button class="btn btn-sm btn-danger fw-bold shadow-sm py-2 px-3" onclick="auth.signOut()">👋 Logout</button>
+            </div>
         </div>
 
         <div class="row g-4">
@@ -236,9 +240,6 @@
 
                         <button type="button" id="btnSelesaiMulti" class="btn btn-success btn-lg w-100 fw-bold shadow-sm mt-2 d-none" onclick="selesaikanTransactionsGabungan()">🛒 Selesaikan Transaksi (Simpan Semua)</button>
                     </form>
-                    
-                    <hr class="my-3">
-                    <a href="penjualan.html" class="btn btn-secondary w-100 fw-bold shadow-sm py-2">📊 Buka Data & Omset Penjualan</a>
                 </div>
             </div>
         </div>
@@ -619,7 +620,6 @@
             normalisaiTombolSimpan(); aturTampilanInputPembayaran(); buatRekomendasiBarang();
         }
 
-        /* REVISI FITUR UTAMA: TOMBOL MULTI KINI DISEMBUNYIKAN SECARA TOTAL KETIKA JENIS PEMBAYARAN BELUM DIPILIH */
         function aturTampilanInputPembayaran() {
             const jenisBayar = document.getElementById('jenisPembayaran').value;
             const areaInputCash = document.getElementById('areaInputCash');
@@ -630,18 +630,18 @@
             
             if (antreanKeranjangSeketika.length === 0 || jenisBayar === "") {
                 areaInputCash.style.display = 'none'; 
-                btnSelesai.classList.add('d-none'); // Sembunyikan tombol jika jenis pembayaran belum dipilih (atau keranjang kosong)
+                btnSelesai.classList.add('d-none');
                 return;
             }
             
             areaInputCash.style.display = jenisBayar === "Cash" ? 'block' : 'none';
             if (jenisBayar === "Cash") {
-                btnSelesai.classList.remove('d-none'); // Munculkan tombol saat Cash dipilih
+                btnSelesai.classList.remove('d-none');
                 hitungKalkulatorSeketika();
             } else if (jenisBayar === "TF") { 
                 btnSelesai.disabled = false; 
                 btnSelesai.className = "btn btn-success btn-lg w-100 fw-bold shadow-sm mt-2";
-                btnSelesai.classList.remove('d-none'); // Munculkan tombol saat TF dipilih
+                btnSelesai.classList.remove('d-none');
             } else { 
                 btnSelesai.disabled = true; 
                 btnSelesai.className = "btn btn-secondary btn-lg w-100 fw-bold shadow-sm mt-2 opacity-50";
