@@ -283,9 +283,9 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Nama Barang / Scan Barcode</label>
                             <div class="input-group mb-1">
-                                <input type="text" id="namaBarang" class="form-control" placeholder="Ketik nama atau ketik/scan nomor barcode..." list="listBarang" oninput="autoFillHarga()" required>
+                                <input type="text" id="namaBarang" class="form-control" placeholder="Ketik nama atau ketik/scan nomor barcode..." list="listBarang" oninput="autoFillHarga(); aturPenyaringanRekomendasiSeketika(this.value)" required>
                                 <a href="input_scan.html" class="btn btn-primary fw-bold d-flex align-items-center justify-content-center" title="Buka Kamera Scan Barang" style="width: 45px;"><span class="material-symbols-outlined">barcode_reader</span></a>
-                                <button class="btn btn-outline-secondary text-danger" type="button" id="btnHapusInput" onclick="document.getElementById('namaBarang').value = ''; document.getElementById('namaBarang').readOnly = false; document.getElementById('hargaTampilan').value = ''; document.getElementById('hargaTampilan').readOnly = false; document.getElementById('jumlahPembelian').value = ''; document.getElementById('jumlahPembelian').type = 'number'; document.getElementById('jumlahPembelian').disabled = false; document.getElementById('jumlahPembelian').placeholder = '0'; document.getElementById('infoStokTersedia').innerText = ''; hargaAsli = 0; hitungKalkulatorSeketika(); normalisaiTombolSimpan(); document.getElementById('namaBarang').focus();" title="Kosongkan Semua Inputan">🗑️</button>
+                                <button class="btn btn-outline-secondary text-danger" type="button" id="btnHapusInput" onclick="document.getElementById('namaBarang').value = ''; document.getElementById('namaBarang').readOnly = false; document.getElementById('hargaTampilan').value = ''; document.getElementById('hargaTampilan').readOnly = false; document.getElementById('jumlahPembelian').value = ''; document.getElementById('jumlahPembelian').type = 'number'; document.getElementById('jumlahPembelian').disabled = false; document.getElementById('jumlahPembelian').placeholder = '0'; document.getElementById('infoStokTersedia').innerText = ''; hargaAsli = 0; hitungKalkulatorSeketika(); normalisaiTombolSimpan(); buatRekomendasiBarang(); document.getElementById('namaBarang').focus();" title="Kosongkan Semua Inputan">🗑️</button>
                             </div>
                             <div class="form-check mt-1">
                                 <input class="form-check-input" type="checkbox" id="checkTanpaNama" onchange="toggleTanpaNamaBarang()">
@@ -546,7 +546,7 @@
                 inputNama.disabled = true;
                 inputNama.required = false; 
                 inputNama.readOnly = false;
-                inputHarga.readOnly = false; // Pastikan harga bisa diketik manual
+                inputHarga.readOnly = false;
                 document.getElementById('infoStokTersedia').innerText = "";
                 document.getElementById('jumlahPembelian').disabled = false;
                 document.getElementById('jumlahPembelian').type = "number";
@@ -806,7 +806,6 @@
 
             const statusCentangSaatIni = checkTanpaNama.checked;
 
-            // MEMBERSIHKAN FORM UTAMA UNTUK BARANG BARU
             document.getElementById('namaBarang').value = ""; 
             inputHargaTampilan.value = ""; 
             document.getElementById('jumlahPembelian').value = ""; 
@@ -814,11 +813,9 @@
             document.getElementById('infoStokTersedia').innerText = ""; 
             hargaAsli = 0;
 
-            // REVISI / FIX BUG: PASTI KAN KEDUA INPUTAN DIBUKA KEMBALI DARI STATE LOCKED BACA-SAJA AUTOFILL
             document.getElementById('namaBarang').readOnly = false;
             inputHargaTampilan.readOnly = false;
 
-            // Kembalikan paksa status centang setelah pembersihan form
             checkTanpaNama.checked = statusCentangSaatIni;
 
             if (checkTanpaNama.checked) {
@@ -830,6 +827,7 @@
             }
 
             perbaruiTampilanRincian(); hitungKalkulatorSeketika(); normalisaiTombolSimpan(); aturTampilanInputPembayaran();
+            buatRekomendasiBarang(); // Reset isi datalist penuh setelah disubmit
         });
 
         function selesaikanTransactionsGabungan() {
@@ -996,7 +994,6 @@
                 document.getElementById('namaBarang').required = true;
             }
             
-            // REVISI / FIX BUG: PASTI KAN KEDUA INPUTAN DIBUKA KEMBALI DI RESET FORM TOTAL
             document.getElementById('namaBarang').readOnly = false; 
             inputHargaTampilan.readOnly = false;
             
@@ -1061,6 +1058,39 @@
                 let optionNama = document.createElement('option'); optionNama.value = nama; datalist.appendChild(optionNama);
                 if (masterProdukLokal[nama].barcode) {
                     let optionBarcode = document.createElement('option'); optionBarcode.value = masterProdukLokal[nama].barcode; optionBarcode.label = `[Barcode] ${nama}`; datalist.appendChild(optionBarcode);
+                }
+            }
+        }
+
+        // REVISI FITUR BARU: PENYARINGAN REKOMENDASI PINTAR REAL-TIME BERDASARKAN HURUFA/ANGKA
+        window.aturPenyaringanRekomendasiSeketika = function(kataKunci) {
+            const datalist = document.getElementById('listBarang');
+            if (!datalist) return;
+            
+            const bersih = kataKunci.trim();
+            if (bersih === "") {
+                buatRekomendasiBarang();
+                return;
+            }
+
+            // Deteksi apakah kata kunci dominan berisi angka (indikasi input barcode)
+            const apakahBarcode = /^\d+$/.test(bersih);
+            datalist.innerHTML = '';
+
+            for (let nama in masterProdukLokal) {
+                if (apakahBarcode) {
+                    // Jika mengetik nomor barcode, cukup tampilkan data barcode yang cocok
+                    if (masterProdukLokal[nama].barcode) {
+                        let optionBarcode = document.createElement('option');
+                        optionBarcode.value = masterProdukLokal[nama].barcode;
+                        optionBarcode.label = `[Barcode] ${nama}`;
+                        datalist.appendChild(optionBarcode);
+                    }
+                } else {
+                    // Jika mengetik nama barang (huruf), cukup tampilkan nama barang saja
+                    let optionNama = document.createElement('option');
+                    optionNama.value = nama;
+                    datalist.appendChild(optionNama);
                 }
             }
         }
