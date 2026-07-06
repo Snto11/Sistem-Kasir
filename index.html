@@ -112,7 +112,7 @@
             line-height: 1;
         }
 
-        /* REVISI CSS: STRUKTUR RESPONSIVE PADA MOBILE TANPA SCROLL KIRI KANAN */
+        /* STRUKTUR RESPONSIVE PADA MOBILE TANPA SCROLL KIRI KANAN */
         @media (max-width: 575.98px) {
             .mobile-tabel-responsive table, 
             .mobile-tabel-responsive thead, 
@@ -440,6 +440,7 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th style="width: 5%;">No.</th>
+                                    <th>Tanggal</th>
                                     <th>Nama Barang</th>
                                     <th>Harga</th>
                                     <th>Jumlah</th>
@@ -450,7 +451,7 @@
                             </thead>
                             <tbody id="tabelBody">
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">Belum ada data penjualan.</td>
+                                    <td colspan="8" class="text-center text-muted py-4">Belum ada data penjualan.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -462,7 +463,7 @@
         <div class="row mt-5">
             <div class="col-12">
                 <div class="footer-copyright">
-                    <p class="text-update-info">Terakhir Diperbarui: 5 Juli 2026</p>
+                    <p class="text-update-info">Terakhir Diperbarui: 6 Juli 2026</p>
                     <p class="m-0">© 2026 Web Cashier. All Rights Reserved.</p>
                 </div>
             </div>
@@ -703,7 +704,7 @@
             let r_cash = 0; let r_tf = 0;
 
             if (dataPenjualanLokal.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Belum ada data penjualan di perangkat ini.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Belum ada data penjualan di perangkat ini.</td></tr>';
                 nilaiCashAsliSimpanan = 0; nilaiTfAsliSimpanan = 0;
                 perbaruiTampilanOmsetDOM(0, 0); omsetCashSistem = 0;
                 hitungSelisihLaci();
@@ -719,10 +720,13 @@
 
                 let totalHargaItem = item.hargaBarang * item.jumlahPembelian;
                 let tampilMetode = item.jenisPembayaran === "Cash" ? "💵 Cash" : (item.jenisPembayaran === "TF" ? "📱 TF" : item.jenisPembayaran);
+                
+                // Backup jika ada data lama yang belum mempunyai properti tanggal
+                let tglTampil = item.waktuTransaksi ? item.waktuTransaksi : "-";
 
-                // REVISI FITUR: PENAMBAHAN ATRIBUT DATA-LABEL UNTUK INTEGRASI STRUKTUR VERTIKAL MOBILE
                 tbody.innerHTML += `<tr>
                     <td data-label="No." class="text-muted fw-semibold">${nomorUrut++}</td>
+                    <td data-label="Tanggal" class="small text-secondary" style="font-size:0.8rem;">${tglTampil}</td>
                     <td data-label="Nama Barang" class="fw-bold">${item.namaBarang}</td>
                     <td data-label="Harga">Rp ${formatRupiah(item.hargaBarang)}</td>
                     <td data-label="Jumlah">${item.jumlahPembelian} Pcs</td>
@@ -730,7 +734,7 @@
                     <td data-label="Total" class="text-success fw-bold">Rp ${formatRupiah(totalHargaItem)}</td>
                     <td data-label="Aksi" class="text-center btn-aksi-tabel">
                         <div class="d-flex flex-row justify-content-center align-items-center">
-                            <button class="btn btn-warning btn-sm me-1 rounded shadow-sm" onclick="siapEdit(${index}, '${item.namaBarang}', ${item.hargaBarang}, ${item.jumlahPembelian}, '${item.jenisPembayaran}')">✏️</button>
+                            <button class="btn btn-warning btn-sm me-1 rounded shadow-sm" onclick="siapEdit(${index}, '${item.namaBarang}', ${item.hargaBarang}, ${item.jumlahPembelian}, '${item.jenisPembayaran}', '${tglTampil}')">✏️</button>
                             <button class="btn btn-danger btn-sm rounded shadow-sm" onclick="hapusDataLokal(${index})">🗑️</button>
                         </div>
                     </td>
@@ -782,7 +786,10 @@
                     alert("Saat mengedit, silakan tentukan Jenis Pembayaran!");
                     document.getElementById('jenisPembayaran').focus(); return;
                 }
-                dataPenjualanLokal[idData] = { namaBarang: namaInput, hargaBarang: hargaAsli, jumlahPembelian: jumlahInput, jenisPembayaran: jenisBayarEdit };
+                // Ambil string tanggal lama agar saat edit tidak ter-reset
+                let tglLama = dataPenjualanLokal[idData].waktuTransaksi || "-";
+                
+                dataPenjualanLokal[idData] = { namaBarang: namaInput, hargaBarang: hargaAsli, jumlahPembelian: jumlahInput, jenisPembayaran: jenisBayarEdit, waktuTransaksi: tglLama };
                 simpanRiwayatKeFirebase(dataPenjualanLokal);
                 Swal.fire({ title: "Diperbarui!", text: "Transaksi berhasil diubah.", icon: "success", timer: 1500, showConfirmButton: false });
                 resetForm(true); return; 
@@ -830,6 +837,10 @@
             let totalBelanja = 0;
             antreanKeranjangSeketika.forEach(item => totalBelanja += (item.hargaBarang * item.jumlahPembelian));
 
+            // REVISI FITUR: BUAT FORMAT TANGGAL HARI INI SECARA LENGKAP DALAM BAHASA INDONESIA
+            const opsiTanggal = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const stringWaktuSekarang = new Date().toLocaleDateString('id-ID', opsiTanggal);
+
             antreanKeranjangSeketika.forEach(item => {
                 if (masterProdukLokal.hasOwnProperty(item.namaBarang)) {
                     masterProdukLokal[item.namaBarang].stok = Math.max(0, masterProdukLokal[item.namaBarang].stok - item.jumlahPembelian);
@@ -849,7 +860,17 @@
                     teksMetodeKolom = jenisBayar;
                 }
 
-                dataPenjualanLokal.push({ namaBarang: item.namaBarang, hargaBarang: item.hargaBarang, Platform: "Web", jumlahPembelian: item.jumlahPembelian, dibayarCash: nominalCashPencatatan, dibayarTF: nominalTfPencatatan, jenisPembayaran: teksMetodeKolom });
+                // Masukkan properti waktuTransaksi ke dalam riwayat object
+                dataPenjualanLokal.push({ 
+                    namaBarang: item.namaBarang, 
+                    hargaBarang: item.hargaBarang, 
+                    Platform: "Web", 
+                    jumlahPembelian: item.jumlahPembelian, 
+                    dibayarCash: nominalCashPencatatan, 
+                    dibayarTF: nominalTfPencatatan, 
+                    jenisPembayaran: teksMetodeKolom,
+                    waktuTransaksi: stringWaktuSekarang
+                });
             });
 
             simpanMasterKeFirebase(masterProdukLokal);
@@ -861,7 +882,7 @@
             resetForm(true);
         }
 
-        function siapEdit(index, nama, price, jumlah, pembayaran) {
+        function siapEdit(index, nama, price, jumlah, pembayaran, tanggalLama) {
             antreanKeranjangSeketika = [];
             sessionStorage.removeItem('cadangan_keranjang_kasir');
             
@@ -990,6 +1011,7 @@
             window.print();
         }
 
+        /* TAMPILAN PEMBAYARAN */
         function aturTampilanInputPembayaran() {
             const jenisBayar = document.getElementById('jenisPembayaran').value;
             const areaInputCash = document.getElementById('areaInputCash');
