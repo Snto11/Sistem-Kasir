@@ -297,14 +297,14 @@
 
                 tbody.innerHTML += `<tr>
                     <td data-label="No." class="text-muted fw-semibold">${nomorUrut++}</td>
-                    <td data-label="Tanggal" class="small text-secondary" style="font-size:0.8rem;">${tglTampil}</td>
+                    <td data-label="Tanggal" class="small text-secondary" style="font-size:0.8rem; white-space: nowrap;">${tglTampil}</td>
                     <td data-label="Nama Barang" class="fw-bold">${item.namaBarang}</td>
                     <td data-label="Harga">Rp ${formatRupiah(item.hargaBarang)}</td>
                     <td data-label="Jumlah">${item.jumlahPembelian} Pcs</td>
                     <td data-label="Pembayaran" class="fw-semibold">${tampilMetode}</td>
                     <td data-label="Total" class="text-success fw-bold">Rp ${formatRupiah(totalHargaItem)}</td>
                     <td data-label="Aksi" class="text-center btn-aksi-tabel">
-                        <button class="btn btn-danger btn-sm rounded shadow-sm" onclick="hapusDataLokal(${index})">🗑️ Hapus</button>
+                        <button class="btn btn-danger btn-sm rounded shadow-sm px-2" onclick="hapusDataLokal(${index})" title="Hapus Data">🗑️</button>
                     </td>
                 </tr>`;
             });
@@ -367,7 +367,9 @@
 
         function downloadPDFDataOnly() {
             if (dataPenjualanLokal.length === 0) { alert("Tidak ada data transaksi."); return; }
-            document.getElementById('printTanggal').innerText = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+            // REVISI METODE TANGGAL PDF: SEKARANG MENGGUNAKAN FORMAT JAM DAN MENIT SAJA (TANPA DETIK)
+            const opsiFormat = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('printTanggal').innerText = new Date().toLocaleDateString('id-ID', opsiFormat);
             window.print();
         }
     </script>
