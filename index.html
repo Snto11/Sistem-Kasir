@@ -307,7 +307,7 @@
             <div class="row mt-5">
                 <div class="col-12">
                     <div class="footer-copyright">
-                        <p class="text-update-info">Terakhir Diperbarui: 7 Juli 2026</p>
+                        <p class="text-update-info">Terakhir Diperbarui: 6 Juli 2026</p>
                         <p class="m-0">© 2026 Web Cashier. All Rights Reserved.</p>
                     </div>
                 </div>
@@ -402,12 +402,10 @@
             
             const inputQty = document.getElementById('jumlahPembelian');
             if (hargaAsli > 0) {
-                // Jika harga ada angkanya, otomatis set ke 1 jika sebelumnya kosong
                 if (!inputQty.value || inputQty.value === "0" || inputQty.value === "") {
                     inputQty.value = "1";
                 }
             } else {
-                // REVISI FITUR: JIKA HARGA DIHAPUS / KOSONG, KEMBALIKAN JUMLAH PEMBELIAN MENJADI KOSONG (PLACEHOLDER 0)
                 inputQty.value = "";
             }
             
@@ -479,9 +477,11 @@
             const checkSplitTF = document.getElementById('checkSplitTF');
             const jenisBayar = document.getElementById('jenisPembayaran').value;
 
-            if (jenisBayar === "TF") return;
+            // Jika metode pembayaran bukan Cash (misal TF), tombol selesai langsung dikontrol di luar
+            if (jenisBayar !== "Cash") return;
 
-            if (inputUangDiterimaTampilan.value !== "") {
+            // REVISI LOGIKA UTAMA: JIKA METODE CASH, TOMBOL BARU MUNCUL KETIKA KOLOM UANG DITERIMA ADA ISINYA (TIDAK KOSONG)
+            if (inputUangFisikTampilanVal = inputUangDiterimaTampilan.value.trim() !== "") {
                 const kembalian = uangDiterimaAsli - totalSeluruhBelanja;
                 document.getElementById('textKembalianSeketika').innerText = "Rp " + formatRupiah(kembalian);
 
@@ -489,21 +489,29 @@
                     document.getElementById('textKembalianSeketika').className = "fs-5 fw-bold text-success";
                     boxSplit.classList.add('d-none');
                     checkSplitTF.checked = false;
-                    btnSelesai.disabled = (jenisBayar !== "Cash");
-                    btnSelesai.className = jenisBayar === "Cash" ? "btn btn-success btn-lg w-100 fw-bold shadow-sm mt-2" : "btn btn-secondary btn-lg w-100 fw-bold shadow-sm mt-2 opacity-50";
+                    
+                    // Munculkan tombol selesai secara normal
+                    btnSelesai.disabled = false;
+                    btnSelesai.className = "btn btn-success btn-lg w-100 fw-bold shadow-sm mt-2";
+                    btnSelesai.classList.remove('d-none');
                 } else {
                     document.getElementById('textKembalianSeketika').className = "fs-5 fw-bold text-danger";
                     boxSplit.classList.remove('d-none');
+                    
+                    // Jika minus, tombol baru aktif kalau kotak split pembayaran dicentang
                     btnSelesai.disabled = !checkSplitTF.checked;
                     btnSelesai.className = checkSplitTF.checked ? "btn btn-success btn-lg w-100 fw-bold shadow-sm mt-2" : "btn btn-secondary btn-lg w-100 fw-bold shadow-sm mt-2 opacity-50";
+                    btnSelesai.classList.remove('d-none');
                 }
             } else {
+                // JIKA INPUTAN UANG DITERIMA KOSONG, SEMBUNYIKAN TOMBOL SELESAIKAN TRANSAKSI
                 document.getElementById('textKembalianSeketika').innerText = "Rp 0";
                 document.getElementById('textKembalianSeketika').className = "fs-5 fw-bold text-danger";
                 boxSplit.classList.add('d-none');
                 checkSplitTF.checked = false;
+                
                 btnSelesai.disabled = true;
-                btnSelesai.className = "btn btn-secondary btn-lg w-100 fw-bold shadow-sm mt-2 opacity-50";
+                btnSelesai.classList.add('d-none');
             }
         }
 
@@ -709,7 +717,7 @@
             
             areaInputCash.style.display = jenisBayar === "Cash" ? 'block' : 'none';
             if (jenisBayar === "Cash") {
-                btnSelesai.classList.remove('d-none');
+                // Saat ganti metode ke Cash, jalankan hitung ulang biar tombol mematuhi isi teks uang diterima harian
                 hitungKalkulatorSeketika();
             } else if (jenisBayar === "TF") { 
                 btnSelesai.disabled = false; 
