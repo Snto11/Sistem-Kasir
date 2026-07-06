@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Web-Cashier - Kasir</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=barcode_reader" />
@@ -102,6 +103,11 @@
             display: inline-block;
             line-height: 1;
         }
+
+        /* Menghilangkan tanda panah bawaan dropdown bootstrap pada gambar profil */
+        .dropdown-toggle::after {
+            display: none !important;
+        }
     </style>
 </head>
 
@@ -126,24 +132,33 @@
 
     <div id="appContainer" class="d-none">
         <nav class="navbar navbar-kasir py-3 px-4 mb-4">
-            <div class="container-fluid p-0 d-flex justify-content-between align-items-center">
-                <span class="navbar-brand fw-bold text-primary m-0" style="font-size: 1.25rem;">🏪 Web-Cashier</span>
-                <a href="penjualan.html" class="btn btn-outline-secondary fw-bold shadow-sm px-3">📊 Data & Omset Penjualan</a>
+            <div class="container-fluid p-0 d-flex align-items-center position-relative justify-content-between">
+                <span class="navbar-brand fw-bold text-primary m-0 d-none d-sm-block" style="font-size: 1.25rem;">🏪 Web-Cashier</span>
+                <span class="navbar-brand fw-bold text-primary m-0 d-block d-sm-none" style="font-size: 1.25rem;">🏪</span>
+
+                <div class="position-absolute start-50 translate-middle-x">
+                    <a href="penjualan.html" class="btn btn-outline-secondary fw-bold shadow-sm px-3 text-nowrap">📊 Data & Omset Penjualan</a>
+                </div>
+
+                <div class="dropdown">
+                    <a class="dropdown-toggle d-flex align-items-center" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img id="userPhoto" src="" alt="User" class="rounded-circle border border-primary border-2" style="width: 40px; height: 40px; cursor: pointer;">
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end shadow border p-3 rounded-3" aria-labelledby="dropdownMenuLink" style="min-width: 230px;">
+                        <li class="px-2 pb-2 border-bottom mb-2 text-center text-sm-start">
+                            <div class="fw-bold text-dark lh-sm" id="userName">Memuat Nama...</div>
+                            <small class="text-muted text-break" id="userEmail">Memuat Email...</small>
+                        </li>
+                        <li>
+                            <button class="dropdown-item btn btn-danger fw-bold text-danger py-2 rounded" onclick="auth.signOut()">👋 Logout</button>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </nav>
 
         <div class="container-fluid px-4">
-            <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border" id="navUserArea">
-                <div class="d-flex align-items-center gap-2">
-                    <img id="userPhoto" src="" alt="User" class="rounded-circle border border-primary border-2" style="width: 40px; height: 40px;">
-                    <div>
-                        <div class="fw-bold text-dark lh-sm" id="userName">Memuat Nama...</div>
-                        <small class="text-muted" id="userEmail">Memuat Email...</small>
-                    </div>
-                </div>
-                <button class="btn btn-sm btn-danger fw-bold shadow-sm" onclick="auth.signOut()">👋 Logout</button>
-            </div>
-
             <div class="row g-4">
                 <div class="col-12 col-md-6 col-lg-5 mx-auto">
                     <div class="card p-4">
@@ -495,7 +510,7 @@
                     alert("Saat mengedit, silakan tentukan Jenis Pembayaran!");
                     document.getElementById('jenisPembayaran').focus(); return;
                 }
-                let tglLama = dataPenjualanLokal[idData].waktuTransaksi || "-";
+                let tglLama = dataPenjokalLokal[idData].waktuTransaksi || "-";
                 dataPenjualanLokal[idData] = { namaBarang: namaInput, hargaBarang: hargaAsli, jumlahPembelian: jumlahInput, jenisPembayaran: jenisBayarEdit, waktuTransaksi: tglLama };
                 simpanRiwayatKeFirebase(dataPenjualanLokal);
                 Swal.fire({ title: "Diperbarui!", text: "Transaksi berhasil diubah.", icon: "success", timer: 1500, showConfirmButton: false });
@@ -673,7 +688,6 @@
             const datalist = document.getElementById('listBarang');
             if (!datalist) return;
             const bersih = kataKunci.trim();
-            if (transparancy === "") { buatRekomendasiBarang(); return; }
             if (bersih === "") { buatRekomendasiBarang(); return; }
             const apakahBarcode = /^\d+$/.test(bersih);
             datalist.innerHTML = '';
