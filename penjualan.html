@@ -80,6 +80,9 @@
                 font-size: 0.85rem !important;
                 padding-top: 8px !important;
                 padding-bottom: 8px !important;
+                /* REVISI CSS: MEMAKSA TEKS TANGGAL/JAM YANG PANJANG TEKUK KE BAWAH SAAT DI HP */
+                white-space: normal !important;
+                word-break: break-word !important;
             }
             
             .mobile-tabel-responsive td:last-child {
@@ -295,9 +298,10 @@
                 let tampilMetode = item.jenisPembayaran === "Cash" ? "💵 Cash" : (item.jenisPembayaran === "TF" ? "📱 TF" : item.jenisPembayaran);
                 let tglTampil = item.waktuTransaksi ? item.waktuTransaksi : "-";
 
+                // PERBAIKAN: Aturan inline white-space: nowrap; dihapus agar flexibel ditekuk kebawah
                 tbody.innerHTML += `<tr>
                     <td data-label="No." class="text-muted fw-semibold">${nomorUrut++}</td>
-                    <td data-label="Tanggal" class="small text-secondary" style="font-size:0.8rem; white-space: nowrap;">${tglTampil}</td>
+                    <td data-label="Tanggal" class="small text-secondary" style="font-size:0.8rem;">${tglTampil}</td>
                     <td data-label="Nama Barang" class="fw-bold">${item.namaBarang}</td>
                     <td data-label="Harga">Rp ${formatRupiah(item.hargaBarang)}</td>
                     <td data-label="Jumlah">${item.jumlahPembelian} Pcs</td>
