@@ -539,12 +539,14 @@
         window.toggleTanpaNamaBarang = function() {
             const checkTanpaNama = document.getElementById('checkTanpaNama');
             const inputNama = document.getElementById('namaBarang');
+            const inputHarga = document.getElementById('hargaTampilan');
             
             if (checkTanpaNama.checked) {
                 inputNama.value = ""; 
                 inputNama.disabled = true;
                 inputNama.required = false; 
                 inputNama.readOnly = false;
+                inputHarga.readOnly = false; // Pastikan harga bisa diketik manual
                 document.getElementById('infoStokTersedia').innerText = "";
                 document.getElementById('jumlahPembelian').disabled = false;
                 document.getElementById('jumlahPembelian').type = "number";
@@ -721,7 +723,6 @@
                 let totalHargaItem = item.hargaBarang * item.jumlahPembelian;
                 let tampilMetode = item.jenisPembayaran === "Cash" ? "💵 Cash" : (item.jenisPembayaran === "TF" ? "📱 TF" : item.jenisPembayaran);
                 
-                // Backup jika ada data lama yang belum mempunyai properti tanggal
                 let tglTampil = item.waktuTransaksi ? item.waktuTransaksi : "-";
 
                 tbody.innerHTML += `<tr>
@@ -786,7 +787,6 @@
                     alert("Saat mengedit, silakan tentukan Jenis Pembayaran!");
                     document.getElementById('jenisPembayaran').focus(); return;
                 }
-                // Ambil string tanggal lama agar saat edit tidak ter-reset
                 let tglLama = dataPenjualanLokal[idData].waktuTransaksi || "-";
                 
                 dataPenjualanLokal[idData] = { namaBarang: namaInput, hargaBarang: hargaAsli, jumlahPembelian: jumlahInput, jenisPembayaran: jenisBayarEdit, waktuTransaksi: tglLama };
@@ -806,6 +806,7 @@
 
             const statusCentangSaatIni = checkTanpaNama.checked;
 
+            // MEMBERSIHKAN FORM UTAMA UNTUK BARANG BARU
             document.getElementById('namaBarang').value = ""; 
             inputHargaTampilan.value = ""; 
             document.getElementById('jumlahPembelian').value = ""; 
@@ -813,11 +814,18 @@
             document.getElementById('infoStokTersedia').innerText = ""; 
             hargaAsli = 0;
 
+            // REVISI / FIX BUG: PASTI KAN KEDUA INPUTAN DIBUKA KEMBALI DARI STATE LOCKED BACA-SAJA AUTOFILL
+            document.getElementById('namaBarang').readOnly = false;
+            inputHargaTampilan.readOnly = false;
+
+            // Kembalikan paksa status centang setelah pembersihan form
             checkTanpaNama.checked = statusCentangSaatIni;
 
             if (checkTanpaNama.checked) {
+                document.getElementById('namaBarang').disabled = true;
                 document.getElementById('hargaTampilan').focus();
             } else {
+                document.getElementById('namaBarang').disabled = false;
                 document.getElementById('namaBarang').focus();
             }
 
@@ -837,7 +845,6 @@
             let totalBelanja = 0;
             antreanKeranjangSeketika.forEach(item => totalBelanja += (item.hargaBarang * item.jumlahPembelian));
 
-            // REVISI FITUR: BUAT FORMAT TANGGAL HARI INI SECARA LENGKAP DALAM BAHASA INDONESIA
             const opsiTanggal = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             const stringWaktuSekarang = new Date().toLocaleDateString('id-ID', opsiTanggal);
 
@@ -860,7 +867,6 @@
                     teksMetodeKolom = jenisBayar;
                 }
 
-                // Masukkan properti waktuTransaksi ke dalam riwayat object
                 dataPenjualanLokal.push({ 
                     namaBarang: item.namaBarang, 
                     hargaBarang: item.hargaBarang, 
@@ -990,8 +996,10 @@
                 document.getElementById('namaBarang').required = true;
             }
             
+            // REVISI / FIX BUG: PASTI KAN KEDUA INPUTAN DIBUKA KEMBALI DI RESET FORM TOTAL
             document.getElementById('namaBarang').readOnly = false; 
             inputHargaTampilan.readOnly = false;
+            
             document.getElementById('jumlahPembelian').type = "number"; 
             document.getElementById('jumlahPembelian').disabled = false; 
             document.getElementById('jumlahPembelian').placeholder = "0";
@@ -1011,7 +1019,6 @@
             window.print();
         }
 
-        /* TAMPILAN PEMBAYARAN */
         function aturTampilanInputPembayaran() {
             const jenisBayar = document.getElementById('jenisPembayaran').value;
             const areaInputCash = document.getElementById('areaInputCash');
