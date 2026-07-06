@@ -519,7 +519,8 @@
 
         function selesaikanTransactionsGabungan() {
             if (antreanKeranjangSeketika.length === 0) return;
-            let jenisBayar = document.getElementById('jenisায়aran').value;
+            // PERBAIKAN BUG: VARIABEL DI BAWAH TELAH DIPERBAIKI DARI 'jenisায়aran' MENJADI 'jenisPembayaran'
+            let jenisBayar = document.getElementById('jenisPembayaran').value;
             const checkSplitTF = document.getElementById('checkSplitTF');
 
             if (!jenisBayar && !checkSplitTF.checked) {
@@ -620,7 +621,6 @@
             normalisaiTombolSimpan(); aturTampilanInputPembayaran(); buatRekomendasiBarang();
         }
 
-        /* REVISI FITUR: WARNA TOMBOL SELESAIKAN TRANSAKSI PADA PILIHAN TF DISAMAKAN DENGAN CASH */
         function aturTampilanInputPembayaran() {
             const jenisBayar = document.getElementById('jenisPembayaran').value;
             const areaInputCash = document.getElementById('areaInputCash');
@@ -639,7 +639,6 @@
             if (jenisBayar === "Cash") {
                 hitungKalkulatorSeketika();
             } else if (jenisBayar === "TF") { 
-                // Mengubah warna tombol menjadi hijau sukses aktif penuh saat TF dipilih
                 btnSelesai.disabled = false; 
                 btnSelesai.className = "btn btn-success btn-lg w-100 fw-bold shadow-sm mt-2";
                 btnSelesai.classList.remove('d-none');
