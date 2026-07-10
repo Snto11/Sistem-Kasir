@@ -307,7 +307,7 @@
             <div class="row mt-5">
                 <div class="col-12">
                     <div class="footer-copyright">
-                        <p class="text-update-info">Terakhir Diperbarui: 6 Juli 2026</p>
+                        <p class="text-update-info">Terakhir Diperbarui: 11 Juli 2026</p>
                         <p class="m-0">© 2026 Web Cashier. All Rights Reserved.</p>
                     </div>
                 </div>
@@ -484,7 +484,6 @@
                 document.getElementById('textKembalianSeketika').innerText = "Rp " + formatRupiah(kembalian);
 
                 if (kembalian >= 0) {
-                    // KONDISI A: UANG LEBIH BESAR ATAU PAS (Rp50.000 >= Rp24.000) -> TOMBOL LANGSUNG MUNCUL
                     document.getElementById('textKembalianSeketika').className = "fs-5 fw-bold text-success";
                     boxSplit.classList.add('d-none');
                     checkSplitTF.checked = false;
@@ -493,11 +492,9 @@
                     btnSelesai.className = "btn btn-success btn-lg w-100 fw-bold shadow-sm mt-2";
                     btnSelesai.classList.remove('d-none');
                 } else {
-                    // KONDISI B: UANG KURANG (Rp23.000 < Rp24.000) -> BADGE MINUS DAN KOTAK SPLIT PEMBAYARAN MUNCUL
                     document.getElementById('textKembalianSeketika').className = "fs-5 fw-bold text-danger";
                     boxSplit.classList.remove('d-none');
                     
-                    // REVISI ATURAN GERBANG LOGIKA: TOMBOL HANYA AKAN MUNCUL (REMOVE D-NONE) JIKA KOTAK SPLIT TF SUDAH DICENTANG
                     if (checkSplitTF.checked) {
                         btnSelesai.disabled = false;
                         btnSelesai.className = "btn btn-success btn-lg w-100 fw-bold shadow-sm mt-2";
@@ -508,7 +505,6 @@
                     }
                 }
             } else {
-                // JIKA KOLOM INPUTAN MASIH KOSONG, SEMBUNYIKAN TOTAL KEMBALIAN DAN TOMBOL TRANSAKSI
                 document.getElementById('textKembalianSeketika').innerText = "Rp 0";
                 document.getElementById('textKembalianSeketika').className = "fs-5 fw-bold text-danger";
                 boxSplit.classList.add('d-none');
@@ -746,18 +742,30 @@
             if (!datalist) return;
             const bersih = kataKunci.trim();
             if (bersih === "") { buatRekomendasiBarang(); return; }
+            
             const apakahBarcode = /^\d+$/.test(bersih);
             datalist.innerHTML = '';
 
-            for (let nama in masterProdukLokal) {
-                if (apakahBarcode) {
-                    if (masterProdukLokal[nama].barcode) {
+            if (apakahBarcode) {
+                for (let nama in masterProdukLokal) {
+                    if (masterProdukLokal[nama].barcode && masterProdukLokal[nama].barcode === bersih) {
                         let optionBarcode = document.createElement('option');
                         optionBarcode.value = masterProdukLokal[nama].barcode;
                         optionBarcode.label = `[Barcode] ${nama}`;
                         datalist.appendChild(optionBarcode);
                     }
-                } else {
+                }
+                return;
+            }
+
+            // PENCARIAN TEKS BERDASARKAN POTONGAN KATA KUNCI (Fuzzy Match Spasi)
+            const potonganKataKunci = bersih.toLowerCase().split(/\s+/).filter(item => item !== "");
+
+            for (let nama in masterProdukLokal) {
+                const namaProdukLower = nama.toLowerCase();
+                const apakahCocokSemua = potonganKataKunci.every(potongan => namaProdukLower.includes(potongan));
+                
+                if (apakahCocokSemua) {
                     let optionNama = document.createElement('option');
                     optionNama.value = nama;
                     datalist.appendChild(optionNama);
