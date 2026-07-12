@@ -885,65 +885,66 @@
         });
 
         function autoFillHarga() {
-            if (document.getElementById('checkTanpaNama').checked) return;
+            if(document.getElementById('checkTanpaNama').checked) return;
             const inputNama = document.getElementById('namaBarang');
-            let namaInputVal = inputNama.value.trim();
+            let namaInputVal = inputNama.value.trim().toLowerCase();
             const inputHarga = document.getElementById('hargaTampilan');
 
             let produkDitemukan = null;
-
-            // 1. Cek apakah yang diketik adalah Nama Barang langsung
-            if (masterProdukLokal.hasOwnProperty(namaInputVal)) {
-                produkDitemukan = masterProdukLokal[namaInputVal];
+            
+            if (masterProdukLokal.hasOwnProperty(inputNama.value.trim())) {
+                produkDitemukan = masterProdukLokal[inputNama.value.trim()];
             } else {
-                // 2. Jika bukan nama, cek apakah ada barcode yang cocok dengan yang diketik
                 for (let nama in masterProdukLokal) {
-                    if (masterProdukLokal[nama].barcode && String(masterProdukLokal[nama].barcode) === namaInputVal) {
-                        produkDitemukan = masterProdukLokal[nama];
-                        inputNama.value = nama; // Ubah inputan barcode menjadi nama barang di teks
-                        break;
+                    if (masterProdukLokal[nama].barcode) {
+                        let barcodeDb = String(masterProdukLokal[nama].barcode).trim().toLowerCase();
+                        if (barcodeDb === namaInputVal) {
+                            produkDitemukan = masterProdukLokal[nama]; 
+                            inputNama.value = nama;
+                            break;
+                        }
                     }
                 }
             }
 
             if (produkDitemukan) {
-                hargaAsli = produkDitemukan.harga;
+                hargaAsli = produkDitemukan.harga; 
                 inputHarga.value = formatRupiah(produkDitemukan.harga);
                 document.getElementById('infoStokTersedia').innerText = `(Tersedia: ${produkDitemukan.stok} Pcs)`;
-                inputNama.readOnly = true;
-                inputHarga.readOnly = true;
+                inputNama.readOnly = true; 
+                inputHarga.readOnly = true; 
                 document.getElementById('jumlahPembelian').value = "1";
                 hitungKalkulatorSeketika();
                 sembunyikanDropdownKustom();
             }
         }
 
-        function __autoFillHarga() {
-            if (document.getElementById('checkTanpaNama').checked) return;
-            const inputNama = document.getElementById('namaBarang');
-            let namaInputVal = inputNama.value.trim();
-            const inputHarga = document.getElementById('hargaTampilan');
+        // function __autoFillHarga() {
+        //     if (document.getElementById('checkTanpaNama').checked) return;
+        //     const inputNama = document.getElementById('namaBarang');
+        //     let namaInputVal = inputNama.value.trim();
+        //     const inputHarga = document.getElementById('hargaTampilan');
 
-            let produkDitemukan = null;
-            if (masterProdukLokal.hasOwnProperty(namaInputVal)) {
-                produkDitemukan = masterProdukLokal[namaInputVal];
-            } else {
-                for (let nama in masterProdukLokal) {
-                    if (masterProdukLokal[nama].barcode && masterProdukLokal[nama].barcode === namaInputVal) {
-                        produkDitemukan = masterProdukLokal[nama]; inputNama.value = nama; break;
-                    }
-                }
-            }
+        //     let produkDitemukan = null;
+        //     if (masterProdukLokal.hasOwnProperty(namaInputVal)) {
+        //         produkDitemukan = masterProdukLokal[namaInputVal];
+        //     } else {
+        //         for (let nama in masterProdukLokal) {
+        //             if (masterProdukLokal[nama].barcode && masterProdukLokal[nama].barcode === namaInputVal) {
+        //                 produkDitemukan = masterProdukLokal[nama]; inputNama.value = nama; break;
+        //             }
+        //         }
+        //     }
 
-            if (produkDitemukan) {
-                hargaAsli = produkDitemukan.harga; inputHarga.value = formatRupiah(produkDitemukan.harga);
-                document.getElementById('infoStokTersedia').innerText = `(Tersedia: ${produkDitemukan.stok} Pcs)`;
-                inputNama.readOnly = true; inputHarga.readOnly = true;
-                document.getElementById('jumlahPembelian').value = "1";
-                hitungKalkulatorSeketika();
-                sembunyikanDropdownKustom();
-            }
-        }
+        //     if (produkDitemukan) {
+        //         hargaAsli = produkDitemukan.harga; inputHarga.value = formatRupiah(produkDitemukan.harga);
+        //         document.getElementById('infoStokTersedia').innerText = `(Tersedia: ${produkDitemukan.stok} Pcs)`;
+        //         inputNama.readOnly = true; inputHarga.readOnly = true;
+        //         document.getElementById('jumlahPembelian').value = "1";
+        //         hitungKalkulatorSeketika();
+        //         sembunyikanDropdownKustom();
+        //     }
+        // }
 
         // SCRIPT TAMBAHAN UNTUK PENGAMBILAN FOOTER SECARA OTOMATIS
         fetch('footer.html')
