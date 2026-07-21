@@ -302,12 +302,26 @@
                                 </div>
                             </div>
 
+                            <!-- <div class="mb-3">
+                                <label class="form-label fw-semibold">Harga Barang</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Rp</span>
+                                    <input type="text" id="hargaTampilan" inputmode="numeric" class="form-control"
+                                        placeholder="0" required>
+                                </div>
+                            </div> -->
+
+                            <!-- KODE BARU -->
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Harga Barang</label>
                                 <div class="input-group">
                                     <span class="input-group-text">Rp</span>
                                     <input type="text" id="hargaTampilan" inputmode="numeric" class="form-control"
                                         placeholder="0" required>
+                                    <!-- Tombol Ribuan (+000) -->
+                                    <button class="btn btn-outline-primary fw-bold d-none" type="button"
+                                        id="btnTambahRibuanHarga" onclick="tambahRibuanHargaBarang()"
+                                        title="Tambah Ribuan (+000)">+000</button>
                                 </div>
                             </div>
 
@@ -635,6 +649,52 @@
             btnSimpan.disabled = false;
         }
 
+        // 1. Fungsi untuk menambah "000" pada Harga Barang
+        function tambahRibuanHargaBarang() {
+            const inputHarga = document.getElementById('hargaTampilan');
+
+            // Ambil nilai angka bersih
+            let nilaiBersih = inputHarga.value.replace(/\D/g, "");
+
+            if (nilaiBersih !== "") {
+                nilaiBersih = nilaiBersih + "000"; // Tambah 000
+                hargaAsli = Number(nilaiBersih) || 0;
+
+                // Format ke Rupiah & update nilai input
+                inputHarga.value = formatRupiah(nilaiBersih);
+
+                // Jika jumlah pembelian belum diisi, otomatis set ke 1
+                const inputQty = document.getElementById('jumlahPembelian');
+                if (!inputQty.value || inputQty.value === "0") {
+                    inputQty.value = "1";
+                }
+
+                // Jalankan ulang kalkulator & re-evaluasi tombol
+                hitungKalkulatorSeketika();
+                aturVisibilitasTombolHargaRibuan();
+                inputHarga.focus();
+            }
+        }
+
+        // 2. Fungsi mengatur visibilitas tombol "+000" (Muncul saat user mengetik)
+        function aturVisibilitasTombolHargaRibuan() {
+            const inputHarga = document.getElementById('hargaTampilan');
+            const btnRibuan = document.getElementById('btnTambahRibuanHarga');
+            const nilaiBersih = inputHarga.value.replace(/\D/g, "");
+
+            // Tombol hanya muncul jika ada input angka & input TIDAK dalam status readOnly
+            if (nilaiBersih !== "" && !inputHarga.readOnly) {
+                btnRibuan.classList.remove('d-none');
+            } else {
+                btnRibuan.classList.add('d-none');
+            }
+        }
+
+        // 3. Pasang Event Listener ke input hargaTampilan
+        document.getElementById('hargaTampilan').addEventListener('input', function () {
+            aturVisibilitasTombolHargaRibuan();
+        });
+
         // function normalisaiTombolSimpan() {
         //     const btnSimpan = document.getElementById('btnSimpan');
         //     const idData = document.getElementById('rowId').value;
@@ -953,6 +1013,7 @@
             aturVisibilitasTombolHapus();
             aturVisibilitasHapusUang();
             aturVisibilitasTombolSimpan()
+            aturVisibilitasTombolHargaRibuan();
         }
 
         function aturTampilanInputPembayaran() {
@@ -1145,6 +1206,7 @@
                 sembunyikanDropdownKustom();
                 aturVisibilitasTombolHapus();
                 aturVisibilitasTombolSimpan()
+                aturVisibilitasTombolHargaRibuan();
             }
         }
 
