@@ -392,6 +392,16 @@
                                             Uang Pas</label>
                                     </div>
 
+                                    <!-- <div class="mb-2">
+                                        <label class="form-label small fw-bold text-secondary">Uang Diterima dari
+                                            Pembeli:</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-secondary text-white">Rp</span>
+                                            <input type="text" id="uangDiterimaTampilan" inputmode="numeric"
+                                                class="form-control" placeholder="0">
+                                        </div>
+                                    </div> -->
+
                                     <div class="mb-2">
                                         <label class="form-label small fw-bold text-secondary">Uang Diterima dari
                                             Pembeli:</label>
@@ -399,6 +409,11 @@
                                             <span class="input-group-text bg-secondary text-white">Rp</span>
                                             <input type="text" id="uangDiterimaTampilan" inputmode="numeric"
                                                 class="form-control" placeholder="0">
+
+                                            <!-- Tombol Hapus Tambahan -->
+                                            <button class="btn btn-outline-secondary text-danger d-none" type="button"
+                                                id="btnHapusUangDiterima" onclick="hapusUangDiterima()"
+                                                title="Kosongkan Uang Diterima">🗑️</button>
                                         </div>
                                     </div>
 
@@ -801,6 +816,7 @@
                 inputUangDiterimaTampilan.readOnly = false;
             }
             hitungKalkulatorSeketika();
+            aturVisibilitasHapusUang();
         }
 
         function resetForm(forceUncheckMaster = false) {
@@ -834,6 +850,7 @@
             perbaruiTampilanRincian(); document.getElementById('textSubtotalSeketika').innerText = "Rp 0"; document.getElementById('textKembalianSeketika').innerText = "Rp 0";
             normalisaiTombolSimpan(); aturTampilanInputPembayaran(); sembunyikanDropdownKustom();
             aturVisibilitasTombolHapus();
+            aturVisibilitasHapusUang();
         }
 
         function aturTampilanInputPembayaran() {
@@ -1042,6 +1059,39 @@
                 btnHapus.classList.add('d-none');
             }
         }
+
+        // 1. Fungsi untuk mengecek isi input dan mengatur sembunyi/munculnya tombol
+        function aturVisibilitasHapusUang() {
+            const inputUang = document.getElementById('uangDiterimaTampilan');
+            const btnHapusUang = document.getElementById('btnHapusUangDiterima');
+
+            if (inputUang.value.trim() !== "") {
+                btnHapusUang.classList.remove('d-none'); // Munculkan tombol
+            } else {
+                btnHapusUang.classList.add('d-none');    // Sembunyikan tombol
+            }
+        }
+
+        // 2. Fungsi saat tombol 🗑️ diklik
+        function hapusUangDiterima() {
+            const inputUang = document.getElementById('uangDiterimaTampilan');
+            inputUang.value = "";
+            uangDiterimaAsli = 0;
+
+            // Matikan centang Uang Pas jika sedang aktif
+            const chkUangPas = document.getElementById('checkUangPas');
+            if (chkUangPas) chkUangPas.checked = false;
+            inputUang.readOnly = false;
+
+            hitungKalkulatorSeketika();
+            aturVisibilitasHapusUang();
+            inputUang.focus();
+        }
+
+        // 3. Pasang Event Listener agar tombol merespons inputan pengguna secara real-time
+        document.getElementById('uangDiterimaTampilan').addEventListener('input', function () {
+            aturVisibilitasHapusUang();
+        });
 
         // Pasang Event Listener ke ketiga input agar fungsi berjalan setiap kali ada pengetikan/perubahan
         document.getElementById('namaBarang').addEventListener('input', aturVisibilitasTombolHapus);
