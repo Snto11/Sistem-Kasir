@@ -524,6 +524,7 @@
                 inputNama.required = true;
                 normalisaiTombolSimpan();
             }
+            aturVisibilitasTombolSimpan();
         }
 
         inputHargaTampilan.addEventListener('input', function (e) {
@@ -565,6 +566,24 @@
             }
             hitungKalkulatorSeketika();
         });
+
+        function aturVisibilitasTombolSimpan() {
+            const namaVal = document.getElementById('namaBarang').value.trim();
+            const hargaVal = document.getElementById('hargaTampilan').value.trim();
+            const jumlahVal = document.getElementById('jumlahPembelian').value.trim();
+            const btnSimpan = document.getElementById('btnSimpan');
+            const checkTanpaNama = document.getElementById('checkTanpaNama');
+
+            // Jika opsi "Tanpa Nama Barang" dicentang, kita abaikan pengecekan Nama Barang
+            const namaValid = checkTanpaNama.checked ? true : (namaVal !== "");
+
+            // Tombol disembunyikan HANYA jika ketiga/semua inputan kosong
+            if (!namaValid && hargaVal === "" && jumlahVal === "") {
+                btnSimpan.classList.add('d-none');
+            } else {
+                btnSimpan.classList.remove('d-none');
+            }
+        }
 
         function normalisaiTombolSimpan__() {
             const btnSimpan = document.getElementById('btnSimpan');
@@ -851,6 +870,7 @@
             normalisaiTombolSimpan(); aturTampilanInputPembayaran(); sembunyikanDropdownKustom();
             aturVisibilitasTombolHapus();
             aturVisibilitasHapusUang();
+            aturVisibilitasTombolSimpan()
         }
 
         function aturTampilanInputPembayaran() {
@@ -1042,6 +1062,7 @@
                 hitungKalkulatorSeketika();
                 sembunyikanDropdownKustom();
                 aturVisibilitasTombolHapus();
+                aturVisibilitasTombolSimpan()
             }
         }
 
@@ -1124,6 +1145,22 @@
                 sembunyikanDropdownKustom();
             }
         }
+
+        // Pasang Event Listener ke ketiga input agar memicu pengecekan tombol Simpan & Hapus
+        ['input', 'change'].forEach(eventType => {
+            document.getElementById('namaBarang').addEventListener(eventType, function () {
+                aturVisibilitasTombolHapus();
+                aturVisibilitasTombolSimpan();
+            });
+            document.getElementById('hargaTampilan').addEventListener(eventType, function () {
+                aturVisibilitasTombolHapus();
+                aturVisibilitasTombolSimpan();
+            });
+            document.getElementById('jumlahPembelian').addEventListener(eventType, function () {
+                aturVisibilitasTombolHapus();
+                aturVisibilitasTombolSimpan();
+            });
+        });
 
         // SCRIPT TAMBAHAN UNTUK PENGAMBILAN FOOTER SECARA OTOMATIS
         fetch('footer.html')
