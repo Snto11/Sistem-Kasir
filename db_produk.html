@@ -364,29 +364,7 @@
         }
 
         // Fungsi untuk menampilkan/menyembunyikan tombol +000
-        function aturTombolRibuan() {
-            const inputHarga = document.getElementById('swalHargaBarangTampilan');
-            const wadahBtnRibuan = document.getElementById('wadahBtnRibuan');
-
-            // 1. Format rupiah saat mengetik (fungsi bawaan kamu)
-            inputHarga.addEventListener('input', function (e) {
-                e.target.value = formatRupiah(e.target.value.replace(/\D/g, ""));
-            });
-
-            // 2. Tampilkan tombol ketika input DIKLIK / DIFOKUSKAN
-            inputHarga.addEventListener('focus', function () {
-                wadahBtnRibuan.classList.remove('d-none');
-            });
-
-            // 3. Sembunyikan tombol ketika pengguna KLIK DI LUAR input (blur)
-            inputHarga.addEventListener('blur', function () {
-                // Beri sedikit jeda (delay) 200ms agar klik pada tombol "+000" sempat tereksekusi sebelum tombolnya hilang
-                setTimeout(() => {
-                    wadahBtnRibuan.classList.add('d-none');
-                }, 200);
-            });
-        }
-
+        // function aturTombolRibuan() {
         //     const inputHarga = document.getElementById('swalHargaBarangTampilan');
         //     const wadahBtn = document.getElementById('wadahBtnRibuan');
 
@@ -406,26 +384,48 @@
         //     aturTombolRibuan();
         // });
 
-        // Fungsi ketika tombol +000 diklik
+        const inputHargaTampilan = document.getElementById('swalHargaBarangTampilan');
+        const wadahBtnRibuan = document.getElementById('wadahBtnRibuan');
+
+        // 1. Format Rupiah saat pengguna mengetik
+        inputHargaTampilan.addEventListener('input', function (e) {
+            e.target.value = formatRupiah(e.target.value.replace(/\D/g, ""));
+        });
+
+        // 2. Tampilkan tombol +000 saat input DIKLIK / DIFOKUSKAN
+        inputHargaTampilan.addEventListener('focus', function () {
+            wadahBtnRibuan.classList.remove('d-none');
+        });
+
+        // 3. Sembunyikan tombol saat KLIK DI LUAR input (blur) dengan delay
+        inputHargaTampilan.addEventListener('blur', function () {
+            setTimeout(() => {
+                wadahBtnRibuan.classList.add('d-none');
+            }, 200);
+        });
+        // 4. Fungsi tombol +000 saat diklik
         function tambahKoinRibuan() {
-            let nilaiBersih = inputHarga.value.replace(/\D/g, ""); // Ambil angka murni
+            let nilaiBersih = inputHargaTampilan.value.replace(/\D/g, ""); // Ambil angka murni
 
             if (nilaiBersih !== "") {
                 nilaiBersih += "000"; // Tambahkan "000"
-                inputHarga.value = formatRupiah(nilaiBersih); // Format ke Rupiah
+                inputHargaTampilan.value = formatRupiah(nilaiBersih); // Format ke Rupiah
             }
 
-            inputHarga.focus();
-
-            // const inputHarga = document.getElementById('swalHargaBarangTampilan');
-            // let nilaiBersih = inputHarga.value.replace(/\D/g, ""); // Ambil angka murninya
-
-            // if (nilaiBersih !== "") {
-            //     nilaiBersih += "000"; // Tambahkan "000" di belakang angka
-            //     inputHarga.value = formatRupiah(nilaiBersih); // Format kembali ke Rupiah
-            //     inputHarga.focus(); // Kembalikan fokus ke input
-            // }
+            inputHargaTampilan.focus(); // Kembalikan fokus kursor
         }
+
+        // Fungsi ketika tombol +000 diklik
+        // function tambahKoinRibuan() {
+        //     const inputHarga = document.getElementById('swalHargaBarangTampilan');
+        //     let nilaiBersih = inputHarga.value.replace(/\D/g, ""); // Ambil angka murninya
+
+        //     if (nilaiBersih !== "") {
+        //         nilaiBersih += "000"; // Tambahkan "000" di belakang angka
+        //         inputHarga.value = formatRupiah(nilaiBersih); // Format kembali ke Rupiah
+        //         inputHarga.focus(); // Kembalikan fokus ke input
+        //     }
+        // }
 
         let namaProdukLamaYangSedangDiedit = "";
         window.isiFormMasterProduk = function (nama, harga, stok, barcode) {
@@ -433,7 +433,6 @@
             document.getElementById('swalBarcodeBarang').value = barcode;
             aturTombolHapusBarcode();
             document.getElementById('swalHargaBarangTampilan').value = formatRupiah(harga);
-            aturTombolRibuan();
             document.getElementById('swalStokBarang').value = stok;
             namaProdukLamaYangSedangDiedit = nama;
             document.getElementById('swalLabelInput').innerText = "✏️ Edit Produk Terpilih:";
@@ -449,7 +448,6 @@
             document.getElementById('swalBarcodeBarang').value = "";
             aturTombolHapusBarcode();
             document.getElementById('swalHargaBarangTampilan').value = "";
-            aturTombolRibuan();
             document.getElementById('swalStokBarang').value = "";
             document.getElementById('swalLabelInput').innerText = "➕ Tambah / Update Produk:";
             document.getElementById('swalWadahTombol').innerHTML = `<button class="btn btn-primary btn-sm w-100 fw-bold d-inline-flex align-items-center justify-content-center gap-1" id="swalBtnSimpan" onclick="simpanMasterProduk()">
