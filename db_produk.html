@@ -218,6 +218,14 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+                        <small class="text-muted" id="infoPagination"></small>
+                        <nav>
+                            <ul class="pagination pagination-sm m-0" id="wadahPagination"></ul>
+                        </nav>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -235,34 +243,49 @@
             const kataKunci = e.target.value.trim();
             const btnHapus = document.getElementById('btnHapusCariMaster');
 
-            // MENGATUR VISIBILITAS TOMBOL HAPUS
             if (kataKunci !== "") {
-                btnHapus.style.display = 'block'; // Tampilkan jika ada teks
+                btnHapus.style.display = 'block';
             } else {
-                btnHapus.style.display = 'none';  // Sembunyikan jika kosong
+                btnHapus.style.display = 'none';
             }
 
-            if (kataKunci === "") {
-                document.querySelectorAll('#swalTabelMaster tbody .produk-row').forEach(row => {
-                    row.style.setProperty('display', '', 'important');
-                });
-                return;
-            }
-
-            const hurufKataKunci = kataKunci.toLowerCase().split("");
-            const polaRegExFuzzy = new RegExp(hurufKataKunci.join(".*"));
-
-            document.querySelectorAll('#swalTabelMaster tbody .produk-row').forEach(row => {
-                const namaAtribut = row.getAttribute('data-nama') || "";
-                const barcodeAtribut = row.getAttribute('data-barcode') || "";
-
-                if (polaRegExFuzzy.test(namaAtribut) || polaRegExFuzzy.test(barcodeAtribut)) {
-                    row.style.setProperty('display', '', 'important');
-                } else {
-                    row.style.setProperty('display', 'none', 'important');
-                }
-            });
+            // Reset ke halaman 1 saat pencarian dilakukan
+            halamanSekarang = 1;
+            muatTabelMasterProduk();
         });
+
+        // document.getElementById('swalCariProduk').addEventListener('input', function (e) {
+        //     const kataKunci = e.target.value.trim();
+        //     const btnHapus = document.getElementById('btnHapusCariMaster');
+
+        //     // MENGATUR VISIBILITAS TOMBOL HAPUS
+        //     if (kataKunci !== "") {
+        //         btnHapus.style.display = 'block'; // Tampilkan jika ada teks
+        //     } else {
+        //         btnHapus.style.display = 'none';  // Sembunyikan jika kosong
+        //     }
+
+        //     if (kataKunci === "") {
+        //         document.querySelectorAll('#swalTabelMaster tbody .produk-row').forEach(row => {
+        //             row.style.setProperty('display', '', 'important');
+        //         });
+        //         return;
+        //     }
+
+        //     const hurufKataKunci = kataKunci.toLowerCase().split("");
+        //     const polaRegExFuzzy = new RegExp(hurufKataKunci.join(".*"));
+
+        //     document.querySelectorAll('#swalTabelMaster tbody .produk-row').forEach(row => {
+        //         const namaAtribut = row.getAttribute('data-nama') || "";
+        //         const barcodeAtribut = row.getAttribute('data-barcode') || "";
+
+        //         if (polaRegExFuzzy.test(namaAtribut) || polaRegExFuzzy.test(barcodeAtribut)) {
+        //             row.style.setProperty('display', '', 'important');
+        //         } else {
+        //             row.style.setProperty('display', 'none', 'important');
+        //         }
+        //     });
+        // });
 
         // Variabel untuk menyimpan status arah urutan (asc = terkecil ke terbesar, desc = terbesar ke terkecil)
         let arahSortirStok = 'asc';
@@ -339,36 +362,140 @@
             inputBarcode.focus();     // Fokuskan kembali ke input
         }
 
+        let halamanSekarang = 1;
+        const itemPerHalaman = 5;
+
         function muatTabelMasterProduk() {
             const tbody = document.querySelector('#swalTabelMaster tbody');
+            const kataKunci = (document.getElementById('swalCariProduk')?.value || '').trim().toLowerCase();
             tbody.innerHTML = '';
-            let barisTabel = '';
-            let nomorUrutMaster = 1;
 
-            for (let nama in masterProdukLokal) {
+            // 1. Filter data berdasarkan pencarian (jika ada)
+            let daftarNamaBarang = Object.keys(masterProdukLokal);
+
+            if (kataKunci !== "") {
+                const hurufKataKunci = kataKunci.split("");
+                const polaRegExFuzzy = new RegExp(hurufKataKunci.join(".*"));
+
+                daftarNamaBarang = daftarNamaBarang.filter(nama => {
+                    const barcode = (masterProdukLokal[nama].barcode || '').toLowerCase();
+                    return polaRegExFuzzy.test(nama.toLowerCase()) || polaRegExFuzzy.test(barcode);
+                });
+            }
+
+            const totalItem = daftarNamaBarang.length;
+            const totalHalaman = Math.ceil(totalItem / itemPerHalaman) || 1;
+
+            // Pastikan halamanSekarang berada di batas yang valid
+            if (halamanSekarang > totalHalaman) halamanSekarang = totalHalaman;
+            if (halamanSekarang < 1) halamanSekarang = 1;
+
+            // 2. Potong array sesuai halaman aktif (Slice)
+            const indeksMulai = (halamanSekarang - 1) * itemPerHalaman;
+            const indeksSelesai = indeksMulai + itemPerHalaman;
+            const itemHalamanIni = daftarNamaBarang.slice(indeksMulai, indeksSelesai);
+
+            // 3. Render baris tabel
+            let barisTabel = '';
+            let nomorUrutMaster = indeksMulai + 1;
+
+            itemHalamanIni.forEach(nama => {
                 let barcodeTampil = masterProdukLokal[nama].barcode ? `<br><small class="text-muted fw-mono" style="font-size: 0.75rem;">📋 ${masterProdukLokal[nama].barcode}</small>` : '';
 
                 barisTabel += `<tr class="produk-row" data-nama="${nama.toLowerCase()}" data-barcode="${(masterProdukLokal[nama].barcode || '').toLowerCase()}">
-                    <td class="text-muted fw-semibold small">${nomorUrutMaster++}</td>
-                    <td class="text-start small nama-produk-kolom"><span class="fw-bold">${nama}</span>${barcodeTampil}</td>
-                    <td class="text-end small text-nowrap">Rp ${formatRupiah(masterProdukLokal[nama].harga)}</td>
-                    <td class="text-center small fw-semibold text-primary">${masterProdukLokal[nama].stok} pcs</td>
-                    <td>
-                        <div class="d-flex flex-row justify-content-center align-items-center">
-                            <button class="btn btn-warning btn-sm p-1 py-0 shadow-sm me-1" onclick="isiFormMasterProduk('${nama}', ${masterProdukLokal[nama].harga}, ${masterProdukLokal[nama].stok}, '${masterProdukLokal[nama].barcode || ''}')">✏️</button>
-                            <button class="btn btn-danger btn-sm p-1 py-0 shadow-sm" onclick="hapusMasterProduk('${nama}')">🗑️</button>
-                        </div>
-                    </td>
-                </tr>`;
-            }
+            <td class="text-muted fw-semibold small">${nomorUrutMaster++}</td>
+            <td class="text-start small nama-produk-kolom"><span class="fw-bold">${nama}</span>${barcodeTampil}</td>
+            <td class="text-end small text-nowrap">Rp ${formatRupiah(masterProdukLokal[nama].harga)}</td>
+            <td class="text-center small fw-semibold text-primary">${masterProdukLokal[nama].stok} pcs</td>
+            <td>
+                <div class="d-flex flex-row justify-content-center align-items-center">
+                    <button class="btn btn-warning btn-sm p-1 py-0 shadow-sm me-1" onclick="isiFormMasterProduk('${nama}', ${masterProdukLokal[nama].harga}, ${masterProdukLokal[nama].stok}, '${masterProdukLokal[nama].barcode || ''}')">✏️</button>
+                    <button class="btn btn-danger btn-sm p-1 py-0 shadow-sm" onclick="hapusMasterProduk('${nama}')">🗑️</button>
+                </div>
+            </td>
+        </tr>`;
+            });
 
             tbody.innerHTML = barisTabel || '<tr><td colspan="5" class="text-muted py-3">Belum ada daftar produk di database.</td></tr>';
 
-            const inputCari = document.getElementById('swalCariProduk');
-            if (inputCari && inputCari.value !== "") {
-                inputCari.dispatchEvent(new Event('input'));
-            }
+            // 4. Render Navigasi Tombol Pagination
+            renderTombolPagination(totalItem, totalHalaman);
         }
+
+        function renderTombolPagination(totalItem, totalHalaman) {
+            const wadah = document.getElementById('wadahPagination');
+            const info = document.getElementById('infoPagination');
+            if (!wadah || !info) return;
+
+            // Tampilkan informasi ringkas
+            if (totalItem === 0) {
+                info.innerText = '0 data';
+                wadah.innerHTML = '';
+                return;
+            }
+
+            info.innerText = `Halaman ${halamanSekarang} dari ${totalHalaman} (${totalItem} produk)`;
+
+            let htmlPagination = '';
+
+            // Tombol Sebelum
+            const disabledSebelum = halamanSekarang === 1 ? 'disabled' : '';
+            htmlPagination += `<li class="page-item ${disabledSebelum}">
+        <button class="page-item page-link py-1 px-2" onclick="pindahHalaman(${halamanSekarang - 1})">‹</button>
+    </li>`;
+
+            // Angka Halaman
+            for (let i = 1; i <= totalHalaman; i++) {
+                const aktif = i === halamanSekarang ? 'active' : '';
+                htmlPagination += `<li class="page-item ${aktif}">
+            <button class="page-link py-1 px-2" onclick="pindahHalaman(${i})">${i}</button>
+        </li>`;
+            }
+
+            // Tombol Sesudah
+            const disabledSesudah = halamanSekarang === totalHalaman ? 'disabled' : '';
+            htmlPagination += `<li class="page-item ${disabledSesudah}">
+        <button class="page-link py-1 px-2" onclick="pindahHalaman(${halamanSekarang + 1})">›</button>
+    </li>`;
+
+            wadah.innerHTML = htmlPagination;
+        }
+
+        function pindahHalaman(halamanBaru) {
+            halamanSekarang = halamanBaru;
+            muatTabelMasterProduk();
+        }
+
+        // function muatTabelMasterProduk() {
+        //     const tbody = document.querySelector('#swalTabelMaster tbody');
+        //     tbody.innerHTML = '';
+        //     let barisTabel = '';
+        //     let nomorUrutMaster = 1;
+
+        //     for (let nama in masterProdukLokal) {
+        //         let barcodeTampil = masterProdukLokal[nama].barcode ? `<br><small class="text-muted fw-mono" style="font-size: 0.75rem;">📋 ${masterProdukLokal[nama].barcode}</small>` : '';
+
+        //         barisTabel += `<tr class="produk-row" data-nama="${nama.toLowerCase()}" data-barcode="${(masterProdukLokal[nama].barcode || '').toLowerCase()}">
+        //             <td class="text-muted fw-semibold small">${nomorUrutMaster++}</td>
+        //             <td class="text-start small nama-produk-kolom"><span class="fw-bold">${nama}</span>${barcodeTampil}</td>
+        //             <td class="text-end small text-nowrap">Rp ${formatRupiah(masterProdukLokal[nama].harga)}</td>
+        //             <td class="text-center small fw-semibold text-primary">${masterProdukLokal[nama].stok} pcs</td>
+        //             <td>
+        //                 <div class="d-flex flex-row justify-content-center align-items-center">
+        //                     <button class="btn btn-warning btn-sm p-1 py-0 shadow-sm me-1" onclick="isiFormMasterProduk('${nama}', ${masterProdukLokal[nama].harga}, ${masterProdukLokal[nama].stok}, '${masterProdukLokal[nama].barcode || ''}')">✏️</button>
+        //                     <button class="btn btn-danger btn-sm p-1 py-0 shadow-sm" onclick="hapusMasterProduk('${nama}')">🗑️</button>
+        //                 </div>
+        //             </td>
+        //         </tr>`;
+        //     }
+
+        //     tbody.innerHTML = barisTabel || '<tr><td colspan="5" class="text-muted py-3">Belum ada daftar produk di database.</td></tr>';
+
+        //     const inputCari = document.getElementById('swalCariProduk');
+        //     if (inputCari && inputCari.value !== "") {
+        //         inputCari.dispatchEvent(new Event('input'));
+        //     }
+        // }
 
         // Fungsi untuk menampilkan/menyembunyikan tombol +000
         // function aturTombolRibuan() {
