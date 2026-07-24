@@ -279,18 +279,15 @@
                                     class="form-control form-control-lg border-warning"
                                     placeholder="Masukkan uang di laci...">
 
-                                <!-- <button class="btn btn-outline-warning text-black fw-bold" type="button"
-                                    onclick="document.getElementById('uangFisikTampilan').value = ''; uangFisikAsli = 0; hitungSelisihLaci();"
-                                    title="Kosongkan Uang Fisik">
-                                    <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
-                                </button> -->
-
                                 <button class="btn btn-outline-warning text-black fw-bold d-none" type="button"
                                     id="btnDeleteUangFisik" onclick="kosongkanUangFisik()" title="Kosongkan Uang Fisik">
                                     <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
                                 </button>
-
                             </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-2 fw-bold"
+                                onclick="tambahNolTiga()">
+                                +000
+                            </button>
                         </div>
                         <div class="col-12 col-sm-6 text-sm-start">
                             <div class="p-2 rounded bg-light border">
@@ -667,6 +664,23 @@
             uangFisikAsli = 0;
             document.getElementById('btnDeleteUangFisik').classList.add('d-none');
             hitungSelisihLaci();
+        }
+
+        function tambahNolTiga() {
+            let nilaiBersih = inputUangFisikTampilan.value.replace(/\D/g, "");
+
+            // Jika inputan tidak kosong, tambahkan '000'
+            if (nilaiBersih !== "") {
+                nilaiBersih += "000";
+                uangFisikAsli = Number(nilaiBersih) || 0;
+                inputUangFisikTampilan.value = formatRupiah(nilaiBersih);
+
+                // Tampilkan tombol delete jika angka terisi
+                document.getElementById('btnDeleteUangFisik').classList.remove('d-none');
+
+                // Re-kalkulasi selisih laci
+                hitungSelisihLaci();
+            }
         }
     </script>
 </body>
